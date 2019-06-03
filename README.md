@@ -6,7 +6,7 @@
 The files in this repository will build out a single dockerized EFK stack which
 will consist of:
 
-*1 - Elasticsearch v7.x node
-*1 - Kibana v7.x node
-*1 - FluentD node
+1 - Elasticsearch v7.x node, 
+1 - Kibana v7.x node, 
+1 - FluentD node
 
