@@ -1,0 +1,50 @@
+version: "3.6"
+services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.name=lsar
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports: ['9200:9200']
+    networks: ['stack']
+    volumes:
+      - es01data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: curl -s https://es01:9200 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  kib01:
+    image: docker.elastic.co/kibana/kibana:7.1.1
+    container_name: kib01
+    ports: ['5601:5601']
+    networks: ['stack']
+    depends_on: ['es01']
+    volumes:
+      - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+    healthcheck:
+      test: curl -s https://kib01:5601 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  fld01:
+    build: ./fluentd
+    container_name: fld01
+    ports: ['5514:5514','5514:5514/udp']
+    networks: ['stack']
+    depends_on: ['es01']
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+networks: {stack: {}}
+volumes:
+  es01data:
+    driver: local
+
