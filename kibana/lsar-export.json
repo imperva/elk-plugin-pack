@@ -2592,8 +2592,35 @@
     "_type": "visualization",
     "_source": {
       "title": "Audit Records Metric",
-      "visState": "{\"title\":\"Audit Records Metric\",\"type\":\"metric\",\"params\":{\"addTooltip\":true,\"addLegend\":false,\"type\":\"metric\",\"metric\":{\"percentageMode\":false,\"useRanges\":false,\"colorSchema\":\"Green to Red\",\"metricColorMode\":\"None\",\"colorsRange\":[{\"from\":0,\"to\":10000}],\"labels\":{\"show\":true},\"invertColors\":false,\"style\":{\"bgFill\":\"#000\",\"bgColor\":false,\"labelColor\":false,\"subText\":\"\",\"fontSize\":20}}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Audit Records\"}}]}",
+      "visState": "{\"title\":\"Audit Records Metric\",\"type\":\"metric\",\"params\":{\"addTooltip\":true,\"addLegend\":false,\"type\":\"metric\",\"metric\":{\"percentageMode\":false,\"useRanges\":false,\"colorSchema\":\"Green to Red\",\"metricColorMode\":\"None\",\"colorsRange\":[{\"from\":0,\"to\":10000}],\"labels\":{\"show\":true},\"invertColors\":false,\"style\":{\"bgFill\":\"#000\",\"bgColor\":false,\"labelColor\":false,\"subText\":\"\",\"fontSize\":15}}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Audit Records\"}}]}",
       "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query\":\"\",\"language\":\"kuery\"},\"filter\":[],\"indexRefName\":\"kibanaSavedObjectMeta.searchSourceJSON.index\"}"
+      }
+    },
+    "_meta": {
+      "savedObjectVersion": 2
+    },
+    "_migrationVersion": {
+      "visualization": "7.0.1"
+    },
+    "_references": [
+      {
+        "name": "kibanaSavedObjectMeta.searchSourceJSON.index",
+        "type": "index-pattern",
+        "id": "ca800430-870e-11e9-9040-af5f6a786d28"
+      }
+    ]
+  },
+  {
+    "_id": "4a003610-8969-11e9-b753-e9fcfdc97209",
+    "_type": "visualization",
+    "_source": {
+      "title": "Policy Table",
+      "visState": "{\"title\":\"Policy Table\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMetricsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Hits Sum\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"policy.keyword\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"otherBucket\":false,\"otherBucketLabel\":\"Other\",\"missingBucket\":false,\"missingBucketLabel\":\"Missing\",\"customLabel\":\"Policy\"}}]}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
       "description": "",
       "version": 1,
       "kibanaSavedObjectMeta": {
@@ -2621,7 +2648,7 @@
       "title": "Summary",
       "hits": 0,
       "description": "",
-      "panelsJSON": "[{\"embeddableConfig\":{},\"gridData\":{\"x\":19,\"y\":0,\"w\":5,\"h\":5,\"i\":\"1\"},\"panelIndex\":\"1\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_0\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":24,\"y\":0,\"w\":6,\"h\":5,\"i\":\"2\"},\"panelIndex\":\"2\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_1\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":30,\"y\":0,\"w\":6,\"h\":5,\"i\":\"4\"},\"panelIndex\":\"4\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_2\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":14,\"y\":0,\"w\":5,\"h\":5,\"i\":\"5\"},\"panelIndex\":\"5\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_3\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":0,\"y\":0,\"w\":7,\"h\":34,\"i\":\"6\"},\"panelIndex\":\"6\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_4\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":7,\"y\":24,\"w\":20,\"h\":10,\"i\":\"7\"},\"panelIndex\":\"7\",\"title\":\"Policies\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_5\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":27,\"y\":24,\"w\":21,\"h\":10,\"i\":\"8\"},\"panelIndex\":\"8\",\"title\":\"Databases\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_6\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":36,\"y\":0,\"w\":6,\"h\":5,\"i\":\"10\"},\"panelIndex\":\"10\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_7\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":42,\"y\":0,\"w\":6,\"h\":5,\"i\":\"11\"},\"panelIndex\":\"11\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_8\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":7,\"y\":11,\"w\":41,\"h\":6,\"i\":\"12\"},\"panelIndex\":\"12\",\"title\":\"Hits Breakdown by Day of the Week\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_9\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":7,\"y\":17,\"w\":41,\"h\":7,\"i\":\"13\"},\"panelIndex\":\"13\",\"title\":\"Hits Breakdown by Hour of the Day\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_10\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":7,\"y\":5,\"w\":41,\"h\":6,\"i\":\"14\"},\"panelIndex\":\"14\",\"title\":\"Traffic Overview\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_11\"},{\"gridData\":{\"x\":7,\"y\":0,\"w\":7,\"h\":5,\"i\":\"15\"},\"version\":\"7.1.1\",\"panelIndex\":\"15\",\"embeddableConfig\":{},\"title\":\"\",\"panelRefName\":\"panel_12\"}]",
+      "panelsJSON": "[{\"embeddableConfig\":{},\"gridData\":{\"x\":19,\"y\":0,\"w\":5,\"h\":5,\"i\":\"1\"},\"panelIndex\":\"1\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_0\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":24,\"y\":0,\"w\":6,\"h\":5,\"i\":\"2\"},\"panelIndex\":\"2\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_1\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":30,\"y\":0,\"w\":6,\"h\":5,\"i\":\"4\"},\"panelIndex\":\"4\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_2\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":14,\"y\":0,\"w\":5,\"h\":5,\"i\":\"5\"},\"panelIndex\":\"5\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_3\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":0,\"y\":0,\"w\":7,\"h\":34,\"i\":\"6\"},\"panelIndex\":\"6\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_4\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":36,\"y\":0,\"w\":6,\"h\":5,\"i\":\"10\"},\"panelIndex\":\"10\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_5\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":42,\"y\":0,\"w\":6,\"h\":5,\"i\":\"11\"},\"panelIndex\":\"11\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_6\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":7,\"y\":11,\"w\":41,\"h\":6,\"i\":\"12\"},\"panelIndex\":\"12\",\"title\":\"Hits Breakdown by Day of the Week\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_7\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":7,\"y\":17,\"w\":41,\"h\":7,\"i\":\"13\"},\"panelIndex\":\"13\",\"title\":\"Hits Breakdown by Hour of the Day\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_8\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":7,\"y\":5,\"w\":41,\"h\":6,\"i\":\"14\"},\"panelIndex\":\"14\",\"title\":\"Traffic Overview\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_9\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":7,\"y\":0,\"w\":7,\"h\":5,\"i\":\"15\"},\"panelIndex\":\"15\",\"title\":\"\",\"version\":\"7.1.1\",\"panelRefName\":\"panel_10\"},{\"gridData\":{\"x\":7,\"y\":24,\"w\":20,\"h\":15,\"i\":\"16\"},\"version\":\"7.1.1\",\"panelIndex\":\"16\",\"embeddableConfig\":{},\"title\":\"\",\"panelRefName\":\"panel_11\"},{\"gridData\":{\"x\":28,\"y\":24,\"w\":20,\"h\":15,\"i\":\"17\"},\"version\":\"7.1.1\",\"panelIndex\":\"17\",\"embeddableConfig\":{},\"panelRefName\":\"panel_12\"}]",
       "optionsJSON": "{\"hidePanelTitles\":false,\"useMargins\":true}",
       "version": 1,
       "timeRestore": false,
@@ -2664,42 +2691,42 @@
       {
         "name": "panel_5",
         "type": "visualization",
-        "id": "c0eb1850-87af-11e9-b753-e9fcfdc97209"
+        "id": "81e7d980-87b0-11e9-b753-e9fcfdc97209"
       },
       {
         "name": "panel_6",
         "type": "visualization",
-        "id": "e2058570-87af-11e9-b753-e9fcfdc97209"
+        "id": "e40c5c80-87b0-11e9-b753-e9fcfdc97209"
       },
       {
         "name": "panel_7",
         "type": "visualization",
-        "id": "81e7d980-87b0-11e9-b753-e9fcfdc97209"
+        "id": "f0427020-87bf-11e9-b753-e9fcfdc97209"
       },
       {
         "name": "panel_8",
         "type": "visualization",
-        "id": "e40c5c80-87b0-11e9-b753-e9fcfdc97209"
+        "id": "9ebfb5c0-87c2-11e9-b753-e9fcfdc97209"
       },
       {
         "name": "panel_9",
         "type": "visualization",
-        "id": "f0427020-87bf-11e9-b753-e9fcfdc97209"
+        "id": "57ec8f80-87a7-11e9-b753-e9fcfdc97209"
       },
       {
         "name": "panel_10",
         "type": "visualization",
-        "id": "9ebfb5c0-87c2-11e9-b753-e9fcfdc97209"
+        "id": "96032240-8944-11e9-b753-e9fcfdc97209"
       },
       {
         "name": "panel_11",
         "type": "visualization",
-        "id": "57ec8f80-87a7-11e9-b753-e9fcfdc97209"
+        "id": "4a003610-8969-11e9-b753-e9fcfdc97209"
       },
       {
         "name": "panel_12",
         "type": "visualization",
-        "id": "96032240-8944-11e9-b753-e9fcfdc97209"
+        "id": "ce554370-88a0-11e9-b753-e9fcfdc97209"
       }
     ]
   }
