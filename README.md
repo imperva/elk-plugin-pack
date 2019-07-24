@@ -29,6 +29,8 @@ be created.  A new index will be built daily.  Creating a master index of
 "lsar-" will allow all of the daily indexes to be rolled up into a single index
 for reporting and visualzation purposes.
 
+### Docker Setup
+
 ### Files
 The files located in the "files" directory are used to finish the configuration
 of the system.  
