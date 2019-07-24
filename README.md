@@ -9,6 +9,11 @@ The files in this repository will build out a single dockerized EFK stack which 
   * 1 - Kibana v7.x nod
   * 1 - FluentD node
 
+### FluentD
+The Dockerfile located in ./fluentd will build the fluentd docker image based on the latest version the first time the docker-compose.yml file is run and install the Elasticsearch output plugin.
+
+The configuration file, ./fluentd/conf/fluent.conf, is configured to listen for JSON formatted syslog messages on TCP port 5514, and then write those logs to the Elasticsearch data system in daily indexes titled "fld".  The index name can easily be changed by editing that file, and changing the name of the index.
+
 ### Kibana
 The configuration file ./kibana/kibana.yml contains the basic Kibana
 configuration.  Changing the elasticsearch.hosts configuration will allow you to
