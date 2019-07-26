@@ -35,7 +35,7 @@ From the repo's base directory, perform the following to get setup for the first
 docker compose build # builds all containers
 docker compose up # Starts all containers
 ```
-This should execute for a while and stop geenrating further messaegs ToDo: Add message to look for. Kill at this point (crtl+c) and run the process in background
+This should execute for a while and stop generating further messaegs ToDo: Add message to look for. Kill at this point (crtl+c) and run the process in background
 ```
 docker compose up -d
 ```
@@ -47,7 +47,7 @@ fluentd - 5514
 
 To check if they're running, execute:
 ```
-netstat -na | grep 9200 #elastic
+netstat -na | grep 9200 # elastic
 netstat -na | grep 5601 # kibana
 netstat -na | grep 5514 # FluentD syslog listener
 ```
