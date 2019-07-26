@@ -29,6 +29,31 @@ be created.  A new index will be built daily.  Creating a master index of
 "lsar-" will allow all of the daily indexes to be rolled up into a single index
 for reporting and visualzation purposes.
 
+### Docker Setup
+From the repo's base directory, perform the following to get setup for the first time
+```
+docker compose build # builds all containers
+docker compose up # Starts all containers
+```
+This should execute for a while and stop geenrating further messaegs ToDo: Add message to look for. Kill at this point (crtl+c) and run the process in background
+```
+docker compose up -d
+```
+
+By default the following services should be running on the ports below:
+elastic - 9200
+kibana - 5601
+fluentd - 5514
+
+To check if they're running, execute:
+```
+netstat -na | grep 9200 #elastic
+netstat -na | grep 5601 # kibana
+netstat -na | grep 5514 # FluentD syslog listener
+```
+
+each should return at least a line of output
+
 ### Files
 The files located in the "files" directory are used to finish the configuration
 of the system.  
