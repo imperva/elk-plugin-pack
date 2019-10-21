@@ -3,11 +3,21 @@
 
 ## Based on [Elasticsearch](https://www.elastic.co/),[Kibana](https://www.elastic.co/products/kibana), and [FluentD](https://www.fluentd.org/).
 
-The files in this repository will build out a single dockerized EFK stack which will consist of:
+The files in this repository will build out a single dockerized ELK or EFK stack which will consist of:
 
-  * 1 - Elasticsearch v7.x nod
-  * 1 - Kibana v7.x nod
-  * 1 - FluentD node
+  * 1 - Elasticsearch v7.x node
+  * 1 - Kibana v7.x node
+  * 1 - Logstash node
+  * 1 - FluentD node **uncomment docker-compose.yml to use**
+
+
+### Logstash
+The Dockerfile located in ./logstash  will build the logstash docker image based on the latest version the first time the docker-compose.yml file run.
+
+The configuration file, ./logstash/pipeline/audit-pipeline.conf, is configured
+to listen for JSON formatted syslog messages on TCP port 5514, and then write
+those logs to the Elasticsearch data system in daily indexes titled
+"audit-YYYY-MM-dd".  The index name can easily be changed by editing that file, and changing the name of the index.
 
 ### FluentD
 The Dockerfile located in ./fluentd will build the fluentd docker image based on the latest version the first time the docker-compose.yml file is run and install the Elasticsearch output plugin.
@@ -32,12 +42,12 @@ for reporting and visualzation purposes.
 ### Docker Setup
 From the repo's base directory, perform the following to get setup for the first time
 ```
-docker compose build # builds all containers
-docker compose up # Starts all containers
+docker-compose build # builds all containers
+docker-compose up # Starts all containers
 ```
 This should execute for a while and stop generating further messaegs ToDo: Add message to look for. Kill at this point (crtl+c) and run the process in background
 ```
-docker compose up -d
+docker-compose up -d
 ```
 
 By default the following services should be running on the ports below:
@@ -49,7 +59,7 @@ To check if they're running, execute:
 ```
 netstat -na | grep 9200 # elastic
 netstat -na | grep 5601 # kibana
-netstat -na | grep 5514 # FluentD syslog listener
+netstat -na | grep 5514 # Logstash/FluentD syslog listener
 ```
 
 each should return at least a line of output
