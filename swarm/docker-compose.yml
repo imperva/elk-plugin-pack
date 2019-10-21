@@ -69,10 +69,10 @@ services:
     deploy:
       restart_policy:
         condition: any
-      mode: global
+      mode: replicated
+      replicas: 4
       placement:
-        constra
-        ints:
+        constraints:
           - node.labels.elastic == data
     environment:
       LS_JAVA_OPTS: "-Xmx1g -Xms1g"
