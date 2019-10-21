@@ -1,0 +1,6 @@
+- name: Add Docker options worker
+  lineinfile: 
+    dest: /etc/sysconfig/docker
+    regexp: '^(.*)OPTIONS(.*)$' 
+    line: OPTIONS="--default-ulimit nofile=1024000:1024000"
+    backrefs: yes

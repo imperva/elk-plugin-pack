@@ -1,0 +1,10 @@
+- name: Changing Docker memory limits
+  lineinfile:
+    path: /lib/systemd/system/docker.service
+    line: LimitMEMLOCK=infinity
+    insertafter: LimitNOFILE=infinity
+
+- name: Add VM max map count
+  lineinfile:
+    path:  /etc/sysctl.conf
+    line: vm.max_map_count=262144

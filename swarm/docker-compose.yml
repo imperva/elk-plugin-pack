@@ -1,0 +1,130 @@
+version: "3.7"
+
+services:
+  esmaster:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    healthcheck:
+      test: curl -fs http://localhost:9200/_cat/health || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 300s
+    configs:
+      - source: es-master
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+      - source: jvm-options-master
+        target: /usr/share/elasticsearch/config/jvm.options
+    networks:
+      - elastic
+    volumes:
+      - esmaster:/usr/share/elasticsearch/data
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.elastic == master
+      resources:
+        limits:
+          memory: 18G
+
+  esdata:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    healthcheck:
+      test: curl -fs http://localhost:9200/_cat/health || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    configs:
+      - source: es-data
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+      - source: jvm-options-data
+        target: /usr/share/elasticsearch/config/jvm.options
+    networks:
+      - elastic
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.elastic == data
+      resources:
+        limits:
+          memory: 18G
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.4.0
+    configs:
+      - source: logstash_config
+        target: /usr/share/logstash/config/logstash.yml
+      - source: logstash_pipeline
+        target: usr/share/logstash/pipeline/audit-pipeline.conf
+    ports:
+      - "5514:5514"
+      - "5003:5003"
+      - "9603:9603"
+    networks:
+      - elastic
+    deploy:
+      restart_policy:
+        condition: any
+      mode: global
+      placement:
+        constra
+        ints:
+          - node.labels.elastic == data
+    environment:
+      LS_JAVA_OPTS: "-Xmx1g -Xms1g"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.4.0
+    ports:
+      - "5601:5601"
+    configs:
+      - source: kibana_config
+        target: /usr/share/kibana/config/kibana.yml
+    networks:
+      - elastic
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.elastic == master
+      update_config:
+        failure_action: rollback
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+
+volumes:
+  esmaster:
+  esdata:
+
+networks:
+  elastic:
+    driver: overlay
+    attachable: true
+    name: elastic
+
+configs:
+  es-coordination:
+    file: ./config/es-coordination.yml
+  es-master:
+    file: ./config/es-master.yml
+  es-data:
+    file: ./config/es-data.yml
+  jvm-options-data:
+    file: ./config/jvm.data.options
+  jvm-options-master:
+    file: ./config/jvm.master.options
+  logstash_config:
+    file: ./config/logstash.yml
+  logstash_pipeline:
+    file: ./logstash/pipeline/audit-pipeline.conf
+  kibana_config:
+    file: ./config/kibana.yml
