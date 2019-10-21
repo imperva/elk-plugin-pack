@@ -5,3 +5,7 @@ variable "region" {
 variable "instance_count" {
     default = 18
 }
+
+variable "key" {
+    default = "audit-deploy"
+}
