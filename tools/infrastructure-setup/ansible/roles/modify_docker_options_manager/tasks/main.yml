@@ -1,0 +1,6 @@
+- name: Add Docker options manager
+  lineinfile: 
+    dest: /etc/sysconfig/docker
+    regexp: '^(.*)OPTIONS(.*)$' 
+    line: OPTIONS="--default-ulimit nofile=1024000:1024000 -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock"
+    backrefs: yes

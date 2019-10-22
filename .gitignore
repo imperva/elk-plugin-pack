@@ -1,0 +1,3 @@
+tools/testing/cmd/kibana-querier/kibana-querier
+.terraform
+*.tfstate*

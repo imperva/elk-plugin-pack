@@ -1,0 +1,9 @@
+bootstrap.memory_lock: true
+cluster.initial_master_nodes: es-master
+node.master: true
+node.data: false
+node.ingest: false
+node.name: es-master
+cluster.name: "lsar-cluster"
+network.host: 0.0.0.0
+action.destructive_requires_name: true
