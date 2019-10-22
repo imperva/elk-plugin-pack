@@ -41,4 +41,4 @@ Under './ansible/inventory/production' there is a hosts file. Add in IP addresse
 ### Running
 Once you have divvied up your machines, run the following command to create your swarm:
 
-    ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ./playbooks/setup_swarm.yml -i ../inventory/production --private-key=./{{ KEY_NAME }}.pem -u ec2-user --fork 10 -e serial_number=10
+    ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ./playbooks/setup_swarm.yml -i ./inventory/production --private-key=./{{ KEY_NAME }}.pem -u ec2-user --fork 10 -e serial_number=10
