@@ -5,7 +5,7 @@ provider "aws" {
 
 resource "aws_instance" "elk-stack" {
     count           = "${var.instance_count}"
-    ami             = "ami-00c03f7f7f2ec15c3"
+    ami             = "${var.amazon_linux_2}"
     instance_type   = "m5ad.2xlarge"
     security_groups = ["${aws_security_group.setup.name}", "${aws_security_group.vpc_internal.name}"]
     key_name        = "${var.key}"

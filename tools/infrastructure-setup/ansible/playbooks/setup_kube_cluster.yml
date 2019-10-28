@@ -1,0 +1,12 @@
+- hosts: kube-master
+  become: true
+  vars:
+    - username: andrew
+    - node_ip: 192.168.2.133
+  roles:
+    - {role: ../roles/update}
+    # - {role: ../roles/docker_setup}
+    # - {role: ../roles/reboot_if_required}
+    # - {role: ../roles/kubernetes_setup}
+    # - {role: ../roles/kubernetes_init}
+    # - {role: ../roles/kubernetes_configure}

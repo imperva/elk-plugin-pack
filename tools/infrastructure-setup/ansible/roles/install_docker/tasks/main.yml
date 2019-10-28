@@ -1,0 +1,43 @@
+- block:
+  - name: Install packages that allow apt to be used over HTTPS
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+  - name: Install docker
+    apt: 
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - docker.io
+    notify:
+      - docker status
+
+  - name: Add user to docker group
+    user:
+      name: "{{ username }}"
+      group: docker
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- block:
+  - name: Install docker-ce (centos) via amazon-linux-extras packages
+    shell: "amazon-linux-extras install docker=18.06.1 -y"
+
+  - name: Add user to docker group
+    shell: "usermod -a -G docker ec2-user"
+
+  - name: Enable Docker CE service at startup
+    service:
+      name: docker
+      state: started
+      enabled: yes
+  when: ansible_distribution == 'Amazon'

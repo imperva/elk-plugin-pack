@@ -51,9 +51,12 @@ docker-compose up -d
 ```
 
 By default the following services should be running on the ports below:
-elastic - 9200
-kibana - 5601
-fluentd - 5514
+
+| Service | Port |
+| ------- | ---- |
+| elastic | 9200 |
+| kibana  | 5601 |
+| fluentd | 5514 |
 
 To check if they're running, execute:
 ```
