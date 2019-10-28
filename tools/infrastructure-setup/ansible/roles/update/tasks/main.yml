@@ -1,5 +1,5 @@
 - block:
-    - name: Update all packages on a Debian/Ubuntu
+    - name: Update all packages on Debian/Ubuntu
       apt:
         update_cache: yes
         upgrade: yes
@@ -8,7 +8,7 @@
     - update
 
 - block:
-    - name: Update all packages on a CentOS/Red Hat Enterprise Linux
+    - name: Update all packages on CentOS/Red Hat Enterprise Linux
       yum:
         name: '*'
         state: latest

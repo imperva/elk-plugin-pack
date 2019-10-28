@@ -49,12 +49,18 @@ Once you have divvied up your machines, run the following command to create your
     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ./playbooks/setup_swarm.yml -i ./inventory/production/swarm_hosts --private-key=./{{ KEY_NAME }}.pem -u ec2-user --fork 10 -e serial_number=10
 
 ### Kubernetes
-This play will set up your cluster with managers and workers.
+This play will set up your cluster with a master and workers.
 
 Add in IP addresses to the different blocks in the hosts file './ansible/inventory/production/kube_hosts'.
 
+| Group         | Explaination                                                                                                                                     |
+| --------------| ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| all:vars      | Tell Ansible to use Python3                                                                                                    |
+| masters       | Master nodes go here                                                                                                           |
+| workers       | Add remaining hosts here                                                                                                       |
+| kube-master   | Used to initialise the Kubernetes cluster                                                                                      |
 
 #### Running
-Once you have divvied up your machines, run the following command to create your swarm:
+Once you have divvied up your machines, run the following command to create your Kubernetes cluster:
 
-    ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ./playbooks/setup_kube_cluster.yml -i ./inventory/production/kube_hosts --private-key=./{{ KEY_NAME }}.pem -u ec2-user --fork 10 -e serial_number=10
+    ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ./playbooks/setup_kube_cluster.yml -i ./inventory/production/kube_hosts --private-key=./{{ KEY_NAME }}.pem -u ubuntu --fork 10 -e serial_number=10

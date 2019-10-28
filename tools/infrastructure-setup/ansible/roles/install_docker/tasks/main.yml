@@ -24,7 +24,7 @@
 
   - name: Add user to docker group
     user:
-      name: "{{ username }}"
+      name: "{{ ansible_user }}"
       group: docker
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
@@ -33,7 +33,7 @@
     shell: "amazon-linux-extras install docker=18.06.1 -y"
 
   - name: Add user to docker group
-    shell: "usermod -a -G docker ec2-user"
+    shell: "usermod -a -G docker {{ ansible_user }}"
 
   - name: Enable Docker CE service at startup
     service:

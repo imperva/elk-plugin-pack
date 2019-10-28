@@ -1,12 +1,35 @@
-- hosts: kube-master
+- hosts: all
   become: true
-  vars:
-    - username: andrew
-    - node_ip: 192.168.2.133
   roles:
     - {role: ../roles/update}
-    # - {role: ../roles/docker_setup}
-    # - {role: ../roles/reboot_if_required}
-    # - {role: ../roles/kubernetes_setup}
-    # - {role: ../roles/kubernetes_init}
-    # - {role: ../roles/kubernetes_configure}
+    - {role: ../roles/remove_swap}
+    - {role: ../roles/install_docker}
+    - {role: ../roles/install_kubernetes}
+    - {role: ../roles/reboot_if_required}
+
+- hosts: master
+  tasks:
+  - name: Initialize the Kubernetes cluster using kubeadm
+    become: true
+    command: kubeadm init --pod-network-cidr=172.16.0.0/16
+
+  - name: Setup kubeconfig for user
+    become: true
+    command: "{{ item }}"
+    with_items:
+    - mkdir -p /home/"{{ ansible_user }}"/.kube
+    - cp -i /etc/kubernetes/admin.conf /home/"{{ ansible_user }}"/.kube/config
+    - chown {{ ansible_user }}:{{ ansible_user }} /home/"{{ ansible_user }}"/.kube/config
+ 
+  - name: Install calico pod network
+    command: kubectl apply -f https://docs.projectcalico.org/v3.9/manifests/calico.yaml
+  
+  - name: Generate join command
+    command: kubeadm token create --print-join-command
+    register: join_command
+
+- hosts: workers
+  become: true
+  tasks:
+  - name: Join the node to cluster
+    command: "{{ hostvars['master']['join_command'].stdout_lines[0] }}"
