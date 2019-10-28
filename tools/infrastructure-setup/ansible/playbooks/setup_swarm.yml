@@ -1,121 +1,106 @@
-- hosts: audit-all
-  become: true
-
-  tasks:
-    - name: Update all packages
-      yum:
-        name: '*'
-        state: latest
-        update_only: yes
-
-    - name: Ensure a list of yum packages are installed
-      yum:
-        name: "{{ packages }}"
-        state: latest
-        update_cache: yes
-      vars:
-        packages:
-        - python-pip
-        - yum-utils
-        - device-mapper-persistent-data
-        - lvm2
-        - git
-        - amazon-linux-extras
-
-    - name: Add extras repository
-      shell: yum-config-manager --enable extras
-
-    - name: Install docker-ce (centos) via amazon-linux-extras packages
-      shell: "amazon-linux-extras install docker=18.06.1 -y"
-
-    - name: Add user to docker group
-      shell: "usermod -a -G docker ec2-user"
-
-    - name: Enable Docker CE service at startup
-      service:
-        name: docker
-        state: started
-        enabled: yes
-
-    - name: Ensure Python pip packages are installed
-      pip:
-        name: "{{ packages }}"
-      vars:
-        packages:
-        - boto
-        - boto3
-        - docker-compose
-
-- name: Modify limits
-  hosts: audit-all
+- hosts: all
   become: true
   roles:
+    - ../roles/update
+    
+- hosts: all
+  become: true
+  tasks:
+  - name: Ensure a list of yum packages are installed
+    yum:
+      name: "{{ packages }}"
+      state: latest
+      update_cache: yes
+    vars:
+      packages:
+      - python-pip
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+      - git
+      - amazon-linux-extras
+
+  - name: Add extras repository
+    shell: yum-config-manager --enable extras
+
+  - name: Ensure Python pip packages are installed
+    pip:
+      name: "{{ packages }}"
+    vars:
+      packages:
+      - boto
+      - boto3
+      - docker-compose
+
+- name: Install Docker
+  hosts: all
+  become: true
+  roles:
+    - ../roles/install_docker
     - ../roles/modify_limits
 
-- name: Docker options manager
-  hosts: swarm-manager
+- hosts: swarm-manager
   become: true
   roles:
     - role: ../roles/modify_docker_options_manager
 
-- name: Docker options worker
-  hosts: workers
+- hosts: workers
   become: true
   roles:
     - role: ../roles/modify_docker_options
 
-- name: Reboot all hosts
-  hosts: audit-all
+- hosts: all
   become: true
   roles:
     - ../roles/reboot
 
+- hosts: swarm-manager
   tasks:
   - name: Init a docker swarm
     docker_swarm:
       advertise_addr: "{{ hostvars['swarm-manager']['ansible_default_ipv4']['address'] }}"
       state: present
-    when: inventory_hostname == 'swarm-manager'
-
   - name: Get swarm info
     docker_swarm:
       state: inspect
     register: swarm_info
-    when: inventory_hostname == 'swarm-manager'
+    
 
+- hosts: managers
+  tasks:
   - name: Add managers to docker swarm
     docker_swarm:
       state: join
       join_token: "{{ hostvars['swarm-manager']['swarm_info']['swarm_facts']['JoinTokens']['Manager'] }}"
       advertise_addr: "{{ ansible_default_ipv4.address }}"
       remote_addrs: ["{{ hostvars['swarm-manager']['ansible_default_ipv4']['address'] }}"]
-    when: inventory_hostname in groups['managers']
 
+- hosts: workers
+  tasks:
   - name: Add workers to docker swarm
     docker_swarm:
       state: join
       join_token: "{{ hostvars['swarm-manager']['swarm_info']['swarm_facts']['JoinTokens']['Worker'] }}"
       advertise_addr: "{{ ansible_default_ipv4.address }}"
       remote_addrs: ["{{ hostvars['swarm-manager']['ansible_default_ipv4']['address'] }}"]
-      labels:
-        elastic: data
-    when: inventory_hostname in groups['workers']
 
   - command: hostname
     register: actual_hostname
 
+- hosts: master
+  tasks:
   - name: Add master labels
     docker_node:
       docker_host: "{{hostvars['swarm-manager']['ansible_default_ipv4']['address']}}:2375"
       hostname: "{{ actual_hostname.stdout }}"
       labels:
         elastic: master
-    when: inventory_hostname in groups['master']
 
+- hosts: data
+  tasks:
   - name: Add data labels
     docker_node:
       docker_host: "{{hostvars['swarm-manager']['ansible_default_ipv4']['address']}}:2375"
       hostname: "{{ actual_hostname.stdout }}"
       labels:
         elastic: data
-    when: inventory_hostname in groups['data']

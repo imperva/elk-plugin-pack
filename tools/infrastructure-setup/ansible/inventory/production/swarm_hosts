@@ -1,8 +1,6 @@
-[audit-all]
 swarm-manager ansible_host=
 
 [managers]
-
 
 [workers]
 
