@@ -1,3 +1,4 @@
 http.host: "0.0.0.0"
 xpack.monitoring.elasticsearch.hosts: [ "http://esdata:9200" ]
 xpack.monitoring.enabled: "true"
+pipeline.batch.size: 5000

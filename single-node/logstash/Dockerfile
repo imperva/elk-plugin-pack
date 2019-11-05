@@ -16,7 +16,7 @@ mkdir -p /opt/logstash/logs && \
 mkdir -p /opt/logstash/sincedb && \
 chown logstash:logstash /opt/logstash/incoming && \
 chown logstash:logstash /opt/logstash/logs && \
-chown logstash:logstash /opt/logstash/sincedb && \
+chown logstash:logstash /opt/logstash/sincedb
 
 USER logstash
 WORKDIR /home/logstash
