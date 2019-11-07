@@ -49,6 +49,8 @@ services:
       - "5514:5514"
       - "5003:5003"
       - "9603:9603"
+    networks: ['stack']
+    depends_on: ['es01']
     environment:
       LS_JAVA_OPTS: "-Xmx1g -Xms1g"
   # fld01:
