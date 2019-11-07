@@ -1,0 +1,65 @@
+- hosts: all
+  become: true
+  roles:
+    - ../roles/update
+    
+- hosts: all
+  become: true
+  tasks:
+  - name: Ensure a list of yum packages are installed
+    yum:
+      name: "{{ packages }}"
+      state: latest
+      update_cache: yes
+    vars:
+      packages:
+      - python-pip
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+      - git
+
+
+- hosts: all
+  become: true
+  roles:
+    - ../roles/reboot
+
+
+- hosts: node-master
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.4.0"
+    es_config:
+      node.name: "es-master-1"
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: false
+      node.master: true
+      bootstrap.memory_lock: false
+    es_heap_size: "16g"
+
+- hosts: data
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.4.0"
+    es_data_dirs:
+      - "/opt/elasticsearch"
+    es_config:
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      discovery.seed_hosts:  "{{ hostvars['node-master']['ansible_default_ipv4']['address'] }}:9300"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: true
+      node.master: false
+      bootstrap.memory_lock: false
+    es_heap_size: "16g"
