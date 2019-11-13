@@ -19,6 +19,9 @@ services:
     volumes:
       - es01data:/usr/share/elasticsearch/data
       - es02data:/usr/share/elasticsearch/backups
+      - type: bind
+        source: ./elastic/jvm.options
+        target: /usr/share/elasticsearch/config/jvm.options
     healthcheck:
       test: curl -s https://es01:9200 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
       interval: 30s
