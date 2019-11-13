@@ -1,0 +1,122 @@
+- hosts: all
+  become: true
+  roles:
+    - ../roles/update
+    
+- hosts: all
+  become: true
+  tasks:
+  - name: Ensure a list of yum packages are installed
+    yum:
+      name: "{{ packages }}"
+      state: latest
+      update_cache: yes
+    vars:
+      packages:
+      - python-pip
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+
+
+- hosts: all
+  become: true
+  roles:
+    - ../roles/reboot
+
+
+- hosts: node-master
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.4.0"
+    es_config:
+      node.name: "es-master-1"
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: false
+      node.master: true
+      bootstrap.memory_lock: false
+    es_heap_size: "16g"
+
+- hosts: data
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.4.0"
+    es_data_dirs:
+      - "/opt/elasticsearch"
+    es_config:
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      discovery.seed_hosts:  "{{ hostvars['node-master']['ansible_default_ipv4']['address'] }}:9300"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: true
+      node.master: false
+      bootstrap.memory_lock: false
+    es_heap_size: "16g"
+
+- hosts: data
+  become: yes
+  tasks:
+  - name: Add logstash key
+    shell: "rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+
+  - name: Install logstash
+    yum:
+      name: "{{ packages }}"
+      state: latest
+      update_cache: yes
+    vars:
+      packages:
+      - java
+      - logstash
+  - copy:
+      src: ../config-files/logstash/logstash.yml
+      dest: /etc/logstash/logstash.yml
+  - copy:
+      src: ../config-files/logstash/jvm.options
+      dest: /etc/logstash/jvm.options
+  - copy:
+      src: ../config-files/logstash/audit-pipeline.conf
+      dest: /etc/logstash/conf.d/audit-pipeline.conf
+  - name: Add ec2 user
+    lineinfile: 
+      dest: /etc/logstash/startup.options
+      regexp: '^(.*)LS_USER(.*)$' 
+      line: LS_USER=ec2-user
+      backrefs: yes
+  - name: Add ec2 group
+    lineinfile: 
+      dest: /etc/logstash/startup.options
+      regexp: '^(.*)LS_GROUP(.*)$' 
+      line: LS_GROUP=ec2-user
+      backrefs: yes
+  - name: Start logstash
+    shell: "sudo service logstash start"
+
+# # - hosts: all
+# #   tasks:
+# #   - name: Create List of nodes to be added into Cluster
+# #     set_fact: nodelist={%for host in groups['data']%}"http://{{hostvars[host].ansible_eth0.ipv4.address}}:9200"{% if not loop.last %},{% endif %}{% endfor %}
+# #   - debug: msg='[{{nodelist}}]'
+
+# - hosts: node-master
+#   become: true
+#   roles:
+#   - role: fedelemantuano.kibana
+#     es_major_version: "7.x"
+#     es_version: "7.4.0"
+#     kibana_config:
+#       elasticsearch.hosts: "ec2-18-189-182-43.us-east-2.compute.amazonaws.com:9200"
+#       server.host: "0.0.0.0"
+#       server.port: 5601
+#       server.name: "kibana"
+    
