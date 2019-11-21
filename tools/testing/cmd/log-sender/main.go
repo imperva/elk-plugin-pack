@@ -25,7 +25,7 @@ func get_message_json( message models.Message ) string {
     return string( json_message )
 }
 
-func inet_worker( message_chan <-chan models.Message, host string, port int ) {
+func inet_worker( count_chan chan<- int, message_chan <-chan models.Message, host string, port int ) {
 
     defer wg.Done()
 
@@ -59,15 +59,16 @@ func inet_worker( message_chan <-chan models.Message, host string, port int ) {
             _, err := conn.Write( []byte( "<14>" + get_message_json( message ) + "\n" ) )
             //count, err := conn.Write( []byte( "<14>" + get_message_json( message ) + "\n" ) )
             if err != nil {
-                fmt.Println( "Error writing to stream." )
+                fmt.Println( "Error writing to stream:" + err.Error() )
+                break
             } else {
                 // fmt.Printf( "Wrote %d bytes to stream.\n", count )
+                counter++
             }
-
-        counter++
     }
 
-    fmt.Printf( "inet_worker sent count=%d\n", counter )
+//    fmt.Printf( "inet_worker sent count=%d\n", counter )
+    count_chan <- counter
 }
 
 func file_worker( message_chan <-chan models.Message, message_file string ) {
@@ -141,6 +142,8 @@ func main() {
 
     start := time.Now()
 
+    count_chan := make( chan int, thread_count )
+
     message_chan := make( chan models.Message, thread_count + 10 )
 
     wg.Add( 1 )
@@ -148,14 +151,27 @@ func main() {
 
     wg.Add( thread_count )
     for count := 0 ; count < thread_count ; count++ {
-        go inet_worker( message_chan, fluentd_host, fluentd_port )
+        go inet_worker( count_chan, message_chan, fluentd_host, fluentd_port )
+    }
+
+    total_count := 0 
+    completed := 0 
+
+    for completed < thread_count {
+        result_count, ok := <- count_chan
+        if ok {
+            total_count += result_count 
+            completed += 1
+            fmt.Printf( "Worker %d, sent count %d\n", completed, result_count )
+        }
     }
 
     //go file_worker( message_chan, "m1.syslog" )
-    wg.Wait()
+//    wg.Wait()
 
     elapsed := time.Since( start )
-    fmt.Println( "Message generator took %s", elapsed )
+    fmt.Printf( "Message generator sent %d messages in %s, throughput %d/sec\n", total_count, elapsed, 
+                                                  int64( 1000 * total_count )/elapsed.Milliseconds() )
 }
 
 
