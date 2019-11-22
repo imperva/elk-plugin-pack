@@ -167,9 +167,92 @@ To uninstall/delete the `lsar-release` deployment
 $ helm delete lsar-release
 ~~~
 
+> Note Well : If you intend to use annotations for `pod` IAM roles, this will not work unless KIAM is deployed. You can deploy KIAM using its community developed Helm chart <https://github.com/helm/charts/tree/master/stable/kiam>. See appendix `Deploy KIAM - Kubernetes IAM` at the end of this document.
+
+### Elasticsearch Helm Chart
+
+See <https://hub.helm.sh/charts/stable/elastic-stack> 
+
+~~~bash
+$ helm install stable/elastic-stack --version 1.8.0
+
+....
+
+~~~
+
+The elasticsearch cluster and associated extras have been installed.
+
+~~~bash
+$ kubectl get pods --namespace=default -l app=elasticsearch
+NAME                                                 READY   STATUS    RESTARTS   AGE
+tinseled-gnat-elasticsearch-client-bf8f4b848-77d7r   1/1     Running   0          15m
+tinseled-gnat-elasticsearch-client-bf8f4b848-ggg47   1/1     Running   0          15m
+tinseled-gnat-elasticsearch-data-0                   1/1     Running   0          15m
+tinseled-gnat-elasticsearch-data-1                   1/1     Running   0          14m
+tinseled-gnat-elasticsearch-master-0                 1/1     Running   0          15m
+tinseled-gnat-elasticsearch-master-1                 1/1     Running   0          13m
+tinseled-gnat-elasticsearch-master-2                 1/1     Running   0          13m
+
+$ kubectl get pods --namespace=default -l app=kibana
+NAME                                    READY   STATUS    RESTARTS   AGE
+tinseled-gnat-kibana-85df678bf9-h6wx2   1/1     Running   0          15m
+
+$ kubectl get pods --namespace=default -l app=logstash
+NAME                       READY   STATUS    RESTARTS   AGE
+tinseled-gnat-logstash-0   1/1     Running   0          17m
+~~~
+
+Kibana can be accessed:
+
+- Within your cluster, at the DNS name `tinseled-gnat-elastic-stack.default.svc.cluster.local` at port `9200`
+- From outside the cluster, run these commands in the same shell:
+
+~~~bash
+$ export POD_NAME=$(kubectl get pods --namespace default \
+        -l "app=kibana" -o jsonpath="{.items[0].metadata.name}")
+
+$ kubectl port-forward --namespace default $POD_NAME 5601:5601
+~~~
+
+To connect to Kibana, access <http://127.0.0.1:5601> via a browser.
+
+### Expose the Kibana Service
+
+~~~bash
+$ kubectl get svc tinseled-gnat-kibana
+NAME                   TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+tinseled-gnat-kibana   ClusterIP   10.100.154.240   <none>        443/TCP   23m
+~~~
+
+Currently the Service does not have an External IP, so let’s now recreate the Service to use a cloud load balancer, just change the Type of `tinseled-gnat-kibana` Service from `ClusterIP` to `LoadBalancer`:
+
+~~~bash
+$ kubectl edit svc tinseled-gnat-kibana
+~~~ 
+
+~~~bash
+$ kubectl get svc tinseled-gnat-kibana
+NAME                   TYPE           CLUSTER-IP       EXTERNAL-IP                                                             PORT(S)         AGE
+tinseled-gnat-kibana   LoadBalancer   10.100.154.240   afc2c47970d1011eaac7d0235f2b7372-19733194.us-east-2.elb.amazonaws.com   443:31629/TCP   25m
+~~~
+
+The `Kibana` service is now reachable externally from `afc2c47970d1011eaac7d0235f2b7372-19733194.us-east-2.elb.amazonaws.com:443`. 
+
+Similarly for `logstash`
+
+~~~bash
+$ kubectl get  svc tinseled-gnat-logstash
+NAME                     TYPE           CLUSTER-IP     EXTERNAL-IP                                                               PORT(S)          AGE
+tinseled-gnat-logstash   LoadBalancer   10.100.44.47   afc2e77140d1011eaac7d0235f2b7372-1537181351.us-east-2.elb.amazonaws.com   5044:30220/TCP   29m
+~~~
+
+The `LogStash` service is now reachable externally from `afc2e77140d1011eaac7d0235f2b7372-1537181351.us-east-2.elb.amazonaws.com:5044 `. 
+
+### Appendices
+
 #### Deploy KIAM - Kubernetes IAM
 
-Annotations for pod IAM roles will not work if KIAM is not deployed. You can deploy KIAM using its community developed Helm chart <https://github.com/helm/charts/tree/master/stable/kiam>.
+If you intend to use annotations for `pod` IAM roles, this will not work unless KIAM is deployed. You can deploy KIAM using its community developed Helm chart <https://github.com/helm/charts/tree/master/stable/kiam>.
 
 ~~~bash
 $ helm install stable/kiam --name lsar-kiam-release
@@ -193,7 +276,7 @@ lsar-kiam-release-server-k9b6q   1/1     Running   0          2m29s
 ....
 ~~~
 
-Using KIAM 
+##### Using KIAM 
 
 - Add an annotation to your namespace as below:
 
@@ -207,59 +290,3 @@ metadata:
 
 - Add an `iam.amazonaws.com/role` annotation to your pods with the role you want them to assume.
 Use `curl` to verify the pod's role from within: `curl http://169.254.169.254/latest/meta-data/iam/security-credentials/`
-
-### Elasticsearch Helm Chart
-
-See <https://github.com/elastic/helm-charts/blob/master/elasticsearch/README.md>
-
-#### Install ELK via Helm
-
-##### Using Helm repository
-
-Add the elastic helm charts repository
-
-~~~bash
-$ helm repo add elastic https://helm.elastic.co
-
-$ helm install --name elasticsearch elastic/elasticsearch
-...
-==> v1/Service
-NAME                           TYPE       CLUSTER-IP    EXTERNAL-IP  PORT(S)            AGE
-elasticsearch-master           ClusterIP  10.100.54.90  <none>       9200/TCP,9300/TCP  1s
-elasticsearch-master-headless  ClusterIP  None          <none>       9200/TCP,9300/TCP  1s
-...
-~~~
-
-- Watch all cluster members come up.
- 
-~~~bash
-$ kubectl get pods --namespace=default -l app=elasticsearch-master -w
-NAME                     READY   STATUS    RESTARTS   AGE
-elasticsearch-master-0   1/1     Running   0          2m46s
-elasticsearch-master-1   1/1     Running   0          2m46s
-elasticsearch-master-2   1/1     Running   0          2m46s
-~~~
-
-- Test cluster health using Helm test.
-
-~~~bash
-$ helm test elasticsearch
-RUNNING: elasticsearch-ayulj-test
-PASSED: elasticsearch-ayulj-test
-~~~
-
-##### Using master `git` branch
-
-- Clone the git repo
-
-~~~bash
-$ git clone git@github.com:elastic/helm-charts.git
-~~~
-
-- Install it
-
-~~~bash
-$ helm install --name elasticsearch ./helm-charts/elasticsearch
-~~~
-
-
