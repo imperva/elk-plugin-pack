@@ -98,6 +98,8 @@
       group: elasticsearch
       mode: 0755 
       state: directory
+  - name: Mount volume
+    command: "mount -o discard /dev/nvme1n1 /mnt/elasticsearch/"
   - name: Create data directory
     file: 
       path: /mnt/elasticsearch/data
@@ -105,8 +107,6 @@
       group: elasticsearch
       mode: 0755 
       state: directory
-  - name: Mount volume
-    command: "mount -o discard /dev/nvme1n1 /mnt/elasticsearch/"
   - name: Start elasticsearch
     command: "service elasticsearch start"
 
@@ -159,11 +159,9 @@
 
 
 # # - hosts: all
-# #   tasks:
-# #   - name: Create List of nodes to be added into Cluster
-# #     set_fact: nodelist={%for host in groups['data']%}"http://{{hostvars[host].ansible_eth0.ipv4.address}}:9200"{% if not loop.last %},{% endif %}{% endfor %}
-# #   - debug: msg='[{{nodelist}}]'
-
+# #   tasks:#   - role: fedelemantuano.kibana
+#     es_major_version: "7.x"
+#     es_version: "7.4.0"
 # - hosts: node-master
 #   become: true
 #   roles:
