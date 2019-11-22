@@ -1,97 +1,128 @@
-# - hosts: all
-#   become: true
-#   roles:
-#     - ../roles/update
+- hosts: all
+  become: true
+  roles:
+    - ../roles/update
     
-# - hosts: all
-#   become: true
-#   tasks:
-#   - name: Ensure a list of yum packages are installed
-#     yum:
-#       name: "{{ packages }}"
-#       state: latest
-#       update_cache: yes
-#     vars:
-#       packages:
-#       - python-pip
-#       - yum-utils
-#       - device-mapper-persistent-data
-#       - lvm2
+- hosts: all
+  become: true
+  tasks:
+  - name: Ensure a list of yum packages are installed
+    yum:
+      name: "{{ packages }}"
+      state: latest
+      update_cache: yes
+    vars:
+      packages:
+      - python-pip
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
 
+- hosts: node-master
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.4.2"
+    es_data_dirs:
+      - "/mnt/elasticsearch/data"
+    es_config:
+      node.name: "es-master-1"
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: false
+      node.master: true
+      bootstrap.memory_lock: true
+    es_heap_size: "16g"
+    es_start_service: false
 
-# - hosts: node-master
-#   roles:
-#   - role: elastic.elasticsearch
-#   vars:
-#     es_major_version: "7.x"
-#     es_version: "7.4.2"
-#     es_config:
-#       node.name: "es-master-1"
-#       cluster.name: "audit-cluster"
-#       cluster.initial_master_nodes: "es-master-1"
-#       network.host: "0.0.0.0"
-#       http.port: 9200
-#       transport.tcp.port: 9300
-#       node.data: false
-#       node.master: true
-#       bootstrap.memory_lock: true
-#     es_heap_size: "18g"
-#     es_start_service: false
+- hosts: master
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.4.2"
+    es_data_dirs:
+      - "/mnt/elasticsearch/data"
+    es_config:
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      discovery.seed_hosts:  "{{ hostvars['node-master']['ansible_default_ipv4']['address'] }}:9300"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: false
+      node.master: true
+      bootstrap.memory_lock: true
+    es_heap_size: "16g"
+    es_start_service: false
 
-# - hosts: master
-#   roles:
-#   - role: elastic.elasticsearch
-#   vars:
-#     es_major_version: "7.x"
-#     es_version: "7.4.2"
-#     es_config:
-#       cluster.name: "audit-cluster"
-#       cluster.initial_master_nodes: "es-master-1"
-#       discovery.seed_hosts:  "{{ hostvars['node-master']['ansible_default_ipv4']['address'] }}:9300"
-#       network.host: "0.0.0.0"
-#       http.port: 9200
-#       transport.tcp.port: 9300
-#       node.data: false
-#       node.master: true
-#       bootstrap.memory_lock: true
-#     es_heap_size: "18g"
-#     es_start_service: false
+- hosts: data
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.4.2"
+    es_data_dirs:
+      - "/mnt/elasticsearch/data"
+    es_config:
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      discovery.seed_hosts:  "{{ hostvars['node-master']['ansible_default_ipv4']['address'] }}:9300"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: true
+      node.master: false
+      bootstrap.memory_lock: true
+    es_heap_size: "16g"
+    es_start_service: false
 
-# - hosts: data
-#   roles:
-#   - role: elastic.elasticsearch
-#   vars:
-#     es_major_version: "7.x"
-#     es_version: "7.4.2"
-#     es_data_dirs:
-#       - "/opt/elasticsearch"
-#     es_config:
-#       cluster.name: "audit-cluster"
-#       cluster.initial_master_nodes: "es-master-1"
-#       discovery.seed_hosts:  "{{ hostvars['node-master']['ansible_default_ipv4']['address'] }}:9300"
-#       network.host: "0.0.0.0"
-#       http.port: 9200
-#       transport.tcp.port: 9300
-#       node.data: true
-#       node.master: false
-#       bootstrap.memory_lock: true
-#     es_heap_size: "18g"
-#     es_start_service: false
-
-# - hosts: all
-#   become: true
-#   roles:
-#     - ../roles/modify_limits_bare_metal
-#     - ../roles/reboot
-#   tasks:
-#   - name: Start elasticsearch
-#     command: "service elasticsearch start"
+- hosts: all
+  become: true
+  roles:
+    - ../roles/modify_limits_bare_metal
+    - ../roles/reboot
+  tasks:
+  - name: Make filesytem
+    filesystem:
+      fstype: xfs
+      dev: /dev/nvme1n1
+  - name: Create elasticsearch directory
+    file: 
+      path: /mnt/elasticsearch
+      owner: elasticsearch
+      group: elasticsearch
+      mode: 0755 
+      state: directory
+  - name: Create data directory
+    file: 
+      path: /mnt/elasticsearch/data
+      owner: elasticsearch
+      group: elasticsearch
+      mode: 0755 
+      state: directory
+  - name: Mount volume
+    command: "mount -o discard /dev/nvme1n1 /mnt/elasticsearch/"
+  - name: Start elasticsearch
+    command: "service elasticsearch start"
 
 - hosts: data
   become: yes
   tasks:
   - name: Add logstash key
     shell: "rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+
+  - name: Remove old logstash version
+    yum:
+      name: "{{ packages }}"
+      state: absent
+    vars:
+      packages:
+      - logstash
 
   - name: Install logstash
     yum:
@@ -125,6 +156,7 @@
       backrefs: yes
   - name: Start logstash
     shell: "sudo service logstash start"
+
 
 # # - hosts: all
 # #   tasks:
