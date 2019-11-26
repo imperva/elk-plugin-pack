@@ -20,8 +20,8 @@
 
 - hosts: node-master
   roles:
-  - role: elastic.elasticsearch
-  vars:
+  - role: elastic.elasticsearch # CHANGE_ME #
+    vars:
     es_major_version: "7.x"
     es_version: "7.4.2"
     es_data_dirs:
@@ -46,7 +46,7 @@
     es_major_version: "7.x"
     es_version: "7.4.2"
     es_data_dirs:
-      - "/mnt/elasticsearch/data"
+      - "/mnt/elasticsearch/data" # CHANGE_ME #
     es_config:
       cluster.name: "audit-cluster"
       cluster.initial_master_nodes: "es-master-1"
@@ -67,7 +67,7 @@
     es_major_version: "7.x"
     es_version: "7.4.2"
     es_data_dirs:
-      - "/mnt/elasticsearch/data"
+      - "/mnt/elasticsearch/data" # CHANGE_ME #
     es_config:
       cluster.name: "audit-cluster"
       cluster.initial_master_nodes: "es-master-1"
@@ -83,6 +83,8 @@
 
 - hosts: all
   become: true
+  vars:
+    mount_volume: true # CHANGE_ME #
   roles:
     - ../roles/modify_limits_bare_metal
     - ../roles/reboot
@@ -90,19 +92,23 @@
   - name: Make filesytem
     filesystem:
       fstype: xfs
-      dev: /dev/nvme1n1
+      dev: /dev/nvme1n1 # CHANGE_ME #
+    when: mount_volume | default(false) | bool == true
   - name: Create elasticsearch directory
     file: 
-      path: /mnt/elasticsearch
+      path: /mnt/elasticsearch # CHANGE_ME #
       owner: elasticsearch
       group: elasticsearch
       mode: 0755 
       state: directory
+    when: mount_volume | default(false) | bool == true
   - name: Mount volume
     command: "mount -o discard /dev/nvme1n1 /mnt/elasticsearch/"
+    when: mount_volume | default(false) | bool == true
+
   - name: Create data directory
     file: 
-      path: /mnt/elasticsearch/data
+      path: /mnt/elasticsearch/data # CHANGE_ME #
       owner: elasticsearch
       group: elasticsearch
       mode: 0755 
