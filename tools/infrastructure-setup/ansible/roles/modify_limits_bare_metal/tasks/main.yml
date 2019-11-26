@@ -1,0 +1,20 @@
+# - name: Update memlock limits
+#   lineinfile:
+#     path:  /etc/security/limits.conf 
+#     line: '{{ item }}' 
+#   with_items:
+#     - 'elasticsearch hard memlock unlimited'
+#     - 'elasticsearch soft memlock unlimited'
+
+- name: Update file limits
+  lineinfile:
+    path:  /usr/lib/systemd/system/elasticsearch.service
+    regexp: '^(.*)LimitNOFILE(.*)$' 
+    line: LimitNOFILE=infinity
+    backrefs: yes
+
+- name: Update memlock limits
+  lineinfile:
+    path:  /usr/lib/systemd/system/elasticsearch.service
+    line: 'LimitMEMLOCK=infinity'
+    insertafter: LimitNOFILE=infinity

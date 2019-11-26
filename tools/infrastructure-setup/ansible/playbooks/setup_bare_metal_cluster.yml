@@ -18,19 +18,14 @@
       - device-mapper-persistent-data
       - lvm2
 
-
-- hosts: all
-  become: true
-  roles:
-    - ../roles/reboot
-
-
 - hosts: node-master
   roles:
-  - role: elastic.elasticsearch
-  vars:
+  - role: elastic.elasticsearch # CHANGE_ME #
+    vars:
     es_major_version: "7.x"
-    es_version: "7.4.0"
+    es_version: "7.4.2"
+    es_data_dirs:
+      - "/mnt/elasticsearch/data"
     es_config:
       node.name: "es-master-1"
       cluster.name: "audit-cluster"
@@ -40,17 +35,39 @@
       transport.tcp.port: 9300
       node.data: false
       node.master: true
-      bootstrap.memory_lock: false
+      bootstrap.memory_lock: true
     es_heap_size: "16g"
+    es_start_service: false
+
+- hosts: master
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.4.2"
+    es_data_dirs:
+      - "/mnt/elasticsearch/data" # CHANGE_ME #
+    es_config:
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      discovery.seed_hosts:  "{{ hostvars['node-master']['ansible_default_ipv4']['address'] }}:9300"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: false
+      node.master: true
+      bootstrap.memory_lock: true
+    es_heap_size: "16g"
+    es_start_service: false
 
 - hosts: data
   roles:
   - role: elastic.elasticsearch
   vars:
     es_major_version: "7.x"
-    es_version: "7.4.0"
+    es_version: "7.4.2"
     es_data_dirs:
-      - "/opt/elasticsearch"
+      - "/mnt/elasticsearch/data" # CHANGE_ME #
     es_config:
       cluster.name: "audit-cluster"
       cluster.initial_master_nodes: "es-master-1"
@@ -60,14 +77,58 @@
       transport.tcp.port: 9300
       node.data: true
       node.master: false
-      bootstrap.memory_lock: false
+      bootstrap.memory_lock: true
     es_heap_size: "16g"
+    es_start_service: false
+
+- hosts: all
+  become: true
+  vars:
+    mount_volume: true # CHANGE_ME #
+  roles:
+    - ../roles/modify_limits_bare_metal
+    - ../roles/reboot
+  tasks:
+  - name: Make filesytem
+    filesystem:
+      fstype: xfs
+      dev: /dev/nvme1n1 # CHANGE_ME #
+    when: mount_volume | default(false) | bool == true
+  - name: Create elasticsearch directory
+    file: 
+      path: /mnt/elasticsearch # CHANGE_ME #
+      owner: elasticsearch
+      group: elasticsearch
+      mode: 0755 
+      state: directory
+    when: mount_volume | default(false) | bool == true
+  - name: Mount volume
+    command: "mount -o discard /dev/nvme1n1 /mnt/elasticsearch/"
+    when: mount_volume | default(false) | bool == true
+
+  - name: Create data directory
+    file: 
+      path: /mnt/elasticsearch/data # CHANGE_ME #
+      owner: elasticsearch
+      group: elasticsearch
+      mode: 0755 
+      state: directory
+  - name: Start elasticsearch
+    command: "service elasticsearch start"
 
 - hosts: data
   become: yes
   tasks:
   - name: Add logstash key
     shell: "rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+
+  - name: Remove old logstash version
+    yum:
+      name: "{{ packages }}"
+      state: absent
+    vars:
+      packages:
+      - logstash
 
   - name: Install logstash
     yum:
@@ -102,12 +163,11 @@
   - name: Start logstash
     shell: "sudo service logstash start"
 
-# # - hosts: all
-# #   tasks:
-# #   - name: Create List of nodes to be added into Cluster
-# #     set_fact: nodelist={%for host in groups['data']%}"http://{{hostvars[host].ansible_eth0.ipv4.address}}:9200"{% if not loop.last %},{% endif %}{% endfor %}
-# #   - debug: msg='[{{nodelist}}]'
 
+# # - hosts: all
+# #   tasks:#   - role: fedelemantuano.kibana
+#     es_major_version: "7.x"
+#     es_version: "7.4.0"
 # - hosts: node-master
 #   become: true
 #   roles:
