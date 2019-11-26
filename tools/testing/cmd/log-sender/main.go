@@ -33,7 +33,13 @@ func inet_worker( count_chan chan<- int, message_chan <-chan models.Message, hos
 
     fmt.Printf( "Connecting to %s\n", dest )
 
-    conn, err := net.Dial( "tcp", dest )
+    tcpAddr, err := net.ResolveTCPAddr( "tcp", dest )
+    if err != nil {
+        println( "ResolveTCPAddr failed:  ", err.Error() )
+        os.Exit( 1 )
+    }
+
+    conn, err := net.DialTCP( "tcp", nil, tcpAddr )
 
     if err != nil {
         if _, t := err.( *net.OpError ) ; t {
