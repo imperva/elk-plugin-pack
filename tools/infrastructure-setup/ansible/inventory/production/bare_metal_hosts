@@ -1,4 +1,5 @@
-[master]
 node-master ansible_host=
+
+[master]
 
 [data]

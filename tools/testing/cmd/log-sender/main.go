@@ -1,28 +1,28 @@
 package main
 
 import (
-    "encoding/json"
-    "strings"
-    "strconv"
-    "bufio"
-    "sync"
-    "time"
-    "net"
-    "fmt"
-    "os"
-    "lsar/package/models"
-    "lsar/cmd/log-sender/message_builder"
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"lsar/cmd/log-sender/message_builder"
+	"lsar/package/models"
+	"net"
+	"os"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 )
 
-func get_message_json( message models.Message ) string {
+func get_message_json(message models.Message) string {
 
-    json_message, err := json.Marshal( message )
-    if err != nil {
-        fmt.Println( "Error marshalling JSON data:", err )
-        return ""
-    }
+	json_message, err := json.Marshal(message)
+	if err != nil {
+		fmt.Println("Error marshalling JSON data:", err)
+		return ""
+	}
 
-    return string( json_message )
+	return string(json_message)
 }
 
 func inet_worker( count_chan chan<- int, message_chan <-chan models.Message, host string, port int ) {
@@ -77,107 +77,104 @@ func inet_worker( count_chan chan<- int, message_chan <-chan models.Message, hos
     count_chan <- counter
 }
 
-func file_worker( message_chan <-chan models.Message, message_file string ) {
+func file_worker(message_chan <-chan models.Message, message_file string) {
 
-    defer wg.Done()
+	defer wg.Done()
 
-    file, err := os.Create( message_file )
-    if err != nil {
-        fmt.Println( "Error opening file ", message_file )
-        return
-    }
-    defer file.Close()
+	file, err := os.Create(message_file)
+	if err != nil {
+		fmt.Println("Error opening file ", message_file)
+		return
+	}
+	defer file.Close()
 
-    writer := bufio.NewWriter( file )
+	writer := bufio.NewWriter(file)
 
-    var counter int = 1
-    for {
-        message, ok := <- message_chan
-        if !ok {
-            return
-        }
+	var counter int = 1
+	for {
+		message, ok := <-message_chan
+		if !ok {
+			return
+		}
 
-        fmt.Printf( "[%d] file_worker received id=%s\n", counter, message.Event.EventID )
+		fmt.Printf("[%d] file_worker received id=%s\n", counter, message.Event.EventID)
 
-        count, err := writer.WriteString( "<14>" + get_message_json( message ) + "\n" )
-        if err == nil {
-            fmt.Printf( "wrote %d bytes\n", count )
-            writer.Flush()
-        }
-        counter++
-    }
+		count, err := writer.WriteString("<14>" + get_message_json(message) + "\n")
+		if err == nil {
+			fmt.Printf("wrote %d bytes\n", count)
+			writer.Flush()
+		}
+		counter++
+	}
 }
 
 var wg sync.WaitGroup
 
 func main() {
 
-    target := strings.Split( os.Args[ 1 ], ":" )
+	target := strings.Split(os.Args[1], ":")
 
-    fluentd_host := target[ 0 ]
-    fluentd_port := 5514
+	fluentd_host := target[0]
+	fluentd_port := 5514
 
-    if len( target ) > 1 {
-        port, err := strconv.Atoi( target[ 1 ] )
-        if err != nil {
-            fmt.Fprintf( os.Stderr, "Invalid target <host:port> %s specified", os.Args[ 1 ] )
-            os.Exit( 22 )
-        }
-        fluentd_port = port
-    }
+	if len(target) > 1 {
+		port, err := strconv.Atoi(target[1])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Invalid target <host:port> %s specified", os.Args[1])
+			os.Exit(22)
+		}
+		fluentd_port = port
+	}
 
+	message_count, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid message count: %s", os.Args[2])
+		os.Exit(22)
+	}
 
-    message_count, err := strconv.Atoi( os.Args[ 2 ] )
-    if err != nil {
-        fmt.Fprintf( os.Stderr, "Invalid message count: %s", os.Args[ 2 ] )
-        os.Exit( 22 )
-    }
+	thread_count := 5
 
-    thread_count := 5
+	if len(os.Args) > 3 {
+		count, err := strconv.Atoi(os.Args[3])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Invalid thread count: %s", os.Args[3])
+			os.Exit(22)
+		}
+		thread_count = count
+	}
 
-    if len( os.Args ) > 3 {
-        count, err := strconv.Atoi( os.Args[ 3 ] )
-        if err != nil {
-            fmt.Fprintf( os.Stderr, "Invalid thread count: %s", os.Args[ 3 ] )
-            os.Exit( 22 )
-        }
-        thread_count = count
-    }
+	fmt.Printf("Send %d messages to fluentd at %s:%d\n", message_count, fluentd_host, fluentd_port)
 
-    fmt.Printf( "Send %d messages to fluentd at %s:%d\n", message_count, fluentd_host, fluentd_port )
+	start := time.Now()
 
-    start := time.Now()
+	count_chan := make(chan int, thread_count)
 
-    count_chan := make( chan int, thread_count )
+	message_chan := make(chan models.Message, thread_count+10)
 
-    message_chan := make( chan models.Message, thread_count + 10 )
+	wg.Add(1)
+	go message_builder.Build(message_chan, message_count, &wg)
 
-    wg.Add( 1 )
-    go message_builder.Build( message_chan, message_count, &wg)
+	wg.Add(thread_count)
+	for count := 0; count < thread_count; count++ {
+		go inet_worker(count_chan, message_chan, fluentd_host, fluentd_port)
+	}
 
-    wg.Add( thread_count )
-    for count := 0 ; count < thread_count ; count++ {
-        go inet_worker( count_chan, message_chan, fluentd_host, fluentd_port )
-    }
+	total_count := 0
+	completed := 0
 
-    total_count := 0 
-    completed := 0 
+	for completed < thread_count {
+		result_count, ok := <-count_chan
+		if ok {
+			total_count += result_count
+			completed += 1
+			fmt.Printf("Worker %d, sent count %d\n", completed, result_count)
+		}
+	}
 
-    for completed < thread_count {
-        result_count, ok := <- count_chan
-        if ok {
-            total_count += result_count 
-            completed += 1
-            fmt.Printf( "Worker %d, sent count %d\n", completed, result_count )
-        }
-    }
+	//go file_worker( message_chan, "m1.syslog" )
+	//    wg.Wait()
 
-    //go file_worker( message_chan, "m1.syslog" )
-//    wg.Wait()
-
-    elapsed := time.Since( start )
-    fmt.Printf( "Message generator sent %d messages in %s, throughput %d/sec\n", total_count, elapsed, 
-                                                  int64( 1000 * total_count )/elapsed.Milliseconds() )
+	elapsed := time.Since(start)
+	fmt.Printf("Message generator sent %d messages in %s, throughput %d/sec\n", total_count, elapsed,
+		int64(1000*total_count)/elapsed.Milliseconds())
 }
-
-
