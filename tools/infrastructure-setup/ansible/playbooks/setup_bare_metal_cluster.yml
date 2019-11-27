@@ -20,12 +20,12 @@
 
 - hosts: node-master
   roles:
-  - role: elastic.elasticsearch # CHANGE_ME #
+  - role: elastic.elasticsearch
     vars:
     es_major_version: "7.x"
     es_version: "7.4.2"
     es_data_dirs:
-      - "/mnt/elasticsearch/data"
+      - "/mnt/elasticsearch/data" # CHANGE_ME #
     es_config:
       node.name: "es-master-1"
       cluster.name: "audit-cluster"
@@ -36,7 +36,7 @@
       node.data: false
       node.master: true
       bootstrap.memory_lock: true
-    es_heap_size: "16g"
+    es_heap_size: "16g" # CHANGE_ME #
     es_start_service: false
 
 - hosts: master
@@ -57,7 +57,7 @@
       node.data: false
       node.master: true
       bootstrap.memory_lock: true
-    es_heap_size: "16g"
+    es_heap_size: "16g" # CHANGE_ME #
     es_start_service: false
 
 - hosts: data
@@ -78,7 +78,7 @@
       node.data: true
       node.master: false
       bootstrap.memory_lock: true
-    es_heap_size: "16g"
+    es_heap_size: "16g" # CHANGE_ME #
     es_start_service: false
 
 - hosts: all
@@ -92,7 +92,7 @@
   - name: Make filesytem
     filesystem:
       fstype: xfs
-      dev: /dev/nvme1n1 # CHANGE_ME #
+      dev: /dev/nvme1n1
     when: mount_volume | default(false) | bool == true
   - name: Create elasticsearch directory
     file: 
