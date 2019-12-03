@@ -18,19 +18,25 @@
       - device-mapper-persistent-data
       - lvm2
       - git
+      - curl
       - amazon-linux-extras
 
   - name: Add extras repository
     shell: yum-config-manager --enable extras
 
-  - name: Ensure Python pip packages are installed
+  - name: install certain python modules for docker
     pip:
       name: "{{ packages }}"
+      state: present
     vars:
       packages:
-      - boto
-      - boto3
-      - docker-compose
+      - docker
+
+  - name: Download docker-compose
+    shell: sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+  - name: Make docker-compose executable
+    shell: sudo chmod +x /usr/local/bin/docker-compose
 
 - name: Install Docker
   hosts: all
