@@ -1,8 +1,8 @@
 http.host: "0.0.0.0"
 xpack.monitoring.elasticsearch.hosts: [ "http://localhost:9200" ]
 xpack.monitoring.enabled: "true"
-# pipeline.batch.size: 500
+pipeline.batch.size: 200
 # pipeline.workers: 36
-# queue.type: persisted
-# queue.drain: true
-# queue.max_bytes: 4gb
+queue.type: persisted
+queue.drain: true
+queue.max_bytes: 4gb
