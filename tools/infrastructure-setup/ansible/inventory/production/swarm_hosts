@@ -7,3 +7,4 @@ swarm-manager ansible_host=
 [master]
 
 [data]
+

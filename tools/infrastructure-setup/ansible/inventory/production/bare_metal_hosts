@@ -1,5 +1,5 @@
-node-master ansible_host=
+master_node ansible_host=
 
-[master]
+[additional_master_nodes]
 
-[data]
+[data_nodes]

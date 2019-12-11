@@ -38,7 +38,7 @@
       node.data: false
       node.master: true
       bootstrap.memory_lock: true
-    es_heap_size: "16g" # CHANGE_ME #
+    es_heap_size: "6g" # CHANGE_ME #
     es_start_service: false
 
 - hosts: additional_master_nodes
@@ -59,10 +59,10 @@
       node.data: false
       node.master: true
       bootstrap.memory_lock: true
-    es_heap_size: "16g" # CHANGE_ME #
+    es_heap_size: "6g" # CHANGE_ME #
     es_start_service: false
 
-- hosts: data_nodes
+- hosts: hot_data_nodes
   roles:
   - role: elastic.elasticsearch
   vars:
@@ -78,18 +78,66 @@
       http.port: 9200
       transport.tcp.port: 9300
       node.data: true
+      node.attr.data: "hot"
       node.master: false
       bootstrap.memory_lock: true
     es_heap_size: "16g" # CHANGE_ME #
     es_start_service: false
 
+- hosts: warm_data_nodes
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.5.0"
+    es_data_dirs:
+      - "/mnt/elasticsearch/data" # CHANGE_ME #
+    es_config:
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      discovery.seed_hosts:  "{{ hostvars['master_node']['ansible_default_ipv4']['address'] }}:9300"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: true
+      node.attr.data: "warm"
+      node.master: false
+      bootstrap.memory_lock: true
+    es_heap_size: "6g" # CHANGE_ME #
+    es_start_service: false
+
+- hosts: cold_data_nodes
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.5.0"
+    es_data_dirs:
+      - "/mnt/elasticsearch/data" # CHANGE_ME #
+    es_config:
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      discovery.seed_hosts:  "{{ hostvars['master_node']['ansible_default_ipv4']['address'] }}:9300"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: true
+      node.attr.data: "cold"
+      node.master: false
+      bootstrap.memory_lock: true
+    es_heap_size: "6g" # CHANGE_ME #
+    es_start_service: false
+
 - hosts: all
   become: true
-  vars:
-    mount_volume: true # CHANGE_ME #
   roles:
     - ../roles/modify_limits_bare_metal
     - ../roles/reboot
+
+- hosts: warm_data_nodes:cold_data_nodes
+  become: true
+  vars:
+    mount_volume: true # CHANGE_ME #
   tasks:
   - name: Make filesytem
     filesystem:
@@ -114,10 +162,15 @@
       group: elasticsearch
       mode: 0755 
       state: directory
+
+
+- hosts: all
+  become: true
+  tasks:
   - name: Start elasticsearch
     command: "service elasticsearch start"
 
-- hosts: data_nodes
+- hosts: hot_data_nodes
   become: yes
   tasks:
   - name: Remove old logstash version
