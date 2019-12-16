@@ -114,7 +114,9 @@
       mode: 0755 
       state: directory
   - name: Start elasticsearch
-    command: "service elasticsearch start"
+    service:
+      name: elasticsearch
+      state: started
 
 - hosts: data
   become: yes
@@ -161,8 +163,10 @@
       line: LS_GROUP=ec2-user
       backrefs: yes
   - name: Start logstash
-    shell: "sudo service logstash start"
-
+    service:
+      name: logstash
+      state: started
+    become:
 
 # # - hosts: all
 # #   tasks:#   - role: fedelemantuano.kibana
