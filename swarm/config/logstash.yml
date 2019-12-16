@@ -1,7 +1,7 @@
 http.host: "0.0.0.0"
 xpack.monitoring.elasticsearch.hosts: [ "http://esdata:9200" ]
 xpack.monitoring.enabled: "true"
-pipeline.batch.size: 125
-# queue.type: persisted
-# queue.drain: true
-# queue.max_bytes: 4gb
+pipeline.batch.size: 200
+queue.type: persisted
+queue.drain: true
+queue.max_bytes: 4gb
