@@ -25,50 +25,56 @@ func get_message_json(message models.Message) string {
 	return string(json_message)
 }
 
-func inet_worker(count_chan chan<- int, message_chan <-chan models.Message, host string, port int) {
+func inet_worker( count_chan chan<- int, message_chan <-chan models.Message, host string, port int ) {
 
-	defer wg.Done()
+    defer wg.Done()
 
-	dest := host + ":" + strconv.Itoa(port)
+    dest := host + ":" + strconv.Itoa( port )
 
-	fmt.Printf("Connecting to %s\n", dest)
+    fmt.Printf( "Connecting to %s\n", dest )
 
-	conn, err := net.Dial("tcp", dest)
+    tcpAddr, err := net.ResolveTCPAddr( "tcp", dest )
+    if err != nil {
+        println( "ResolveTCPAddr failed:  ", err.Error() )
+        os.Exit( 1 )
+    }
 
-	if err != nil {
-		if _, t := err.(*net.OpError); t {
-			fmt.Println("Problem connecting.")
-		} else {
-			fmt.Println("Unknown error: " + err.Error())
-		}
-		return
-	}
+    conn, err := net.DialTCP( "tcp", nil, tcpAddr )
 
-	defer conn.Close()
+    if err != nil {
+        if _, t := err.( *net.OpError ) ; t {
+            fmt.Println( "Problem connecting." )
+        } else {
+            fmt.Println( "Unknown error: " + err.Error() )
+        }
+        return
+    } 
+         
+    defer conn.Close()
+ 
+//         conn.SetWriteDeadline( time.Now().Add( 1 * time.Second ) )
+    var counter int = 0
+    for {
+            message, ok := <- message_chan
+            if !ok {
+                break
+            }
 
-	//         conn.SetWriteDeadline( time.Now().Add( 1 * time.Second ) )
-	var counter int = 0
-	for {
-		message, ok := <-message_chan
-		if !ok {
-			break
-		}
+//            fmt.Printf( "[%d] inet_worker received id=%s\n", counter, message.Event.EventId )
 
-		//            fmt.Printf( "[%d] inet_worker received id=%s\n", counter, message.Event.EventId )
+            _, err := conn.Write( []byte( "<14>" + get_message_json( message ) + "\n" ) )
+            //count, err := conn.Write( []byte( "<14>" + get_message_json( message ) + "\n" ) )
+            if err != nil {
+                fmt.Println( "Error writing to stream:" + err.Error() )
+                break
+            } else {
+                // fmt.Printf( "Wrote %d bytes to stream.\n", count )
+                counter++
+            }
+    }
 
-		_, err := conn.Write([]byte("<14>" + get_message_json(message) + "\n"))
-		//count, err := conn.Write( []byte( "<14>" + get_message_json( message ) + "\n" ) )
-		if err != nil {
-			fmt.Println("Error writing to stream:" + err.Error())
-			break
-		} else {
-			// fmt.Printf( "Wrote %d bytes to stream.\n", count )
-			counter++
-		}
-	}
-
-	//    fmt.Printf( "inet_worker sent count=%d\n", counter )
-	count_chan <- counter
+//    fmt.Printf( "inet_worker sent count=%d\n", counter )
+    count_chan <- counter
 }
 
 func file_worker(message_chan <-chan models.Message, message_file string) {

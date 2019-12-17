@@ -115,7 +115,9 @@
       mode: 0755 
       state: directory
   - name: Start elasticsearch
-    command: "service elasticsearch start"
+    service:
+      name: elasticsearch
+      state: started
 
 - hosts: data_nodes
   become: yes
