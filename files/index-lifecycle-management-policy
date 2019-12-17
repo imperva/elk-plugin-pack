@@ -1,0 +1,58 @@
+PUT _ilm/policy/Audit
+{
+  "policy": {
+    "phases": {
+      "hot": {
+        "min_age": "0ms",
+        "actions": {
+          "rollover": {
+            "max_age": "7d",
+            "max_size": "50gb"
+          },
+          "set_priority": {
+            "priority": 100
+          }
+        }
+      },
+      "warm": {
+        "actions": {
+          "allocate": {
+            "include": {},
+            "exclude": {},
+            "require": {
+              "data": "warm"
+            }
+          },
+          "shrink": {
+            "number_of_shards": 1
+          },
+          "set_priority": {
+            "priority": 50
+          }
+        }
+      },
+      "cold": {
+        "min_age": "15d",
+        "actions": {
+          "freeze": {},
+          "allocate": {
+            "include": {},
+            "exclude": {},
+            "require": {
+              "data": "cold"
+            }
+          },
+          "set_priority": {
+            "priority": 0
+          }
+        }
+      },
+      "delete": {
+        "min_age": "30d",
+        "actions": {
+          "delete": {}
+        }
+      }
+    }
+  }
+}

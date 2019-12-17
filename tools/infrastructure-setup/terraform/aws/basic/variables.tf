@@ -3,7 +3,7 @@ variable "region" {
 }
 
 variable "instance_count" {
-    default = 6
+    default = 3
 }
 
 variable "key" {

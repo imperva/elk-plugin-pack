@@ -45,12 +45,12 @@
     - ../roles/install_docker
     - ../roles/modify_limits
 
-- hosts: swarm-manager
+- hosts: swarm_manager
   become: true
   roles:
     - role: ../roles/modify_docker_options_manager
 
-- hosts: workers
+- hosts: swarm_workers
   become: true
   roles:
     - role: ../roles/modify_docker_options
@@ -60,11 +60,11 @@
   roles:
     - ../roles/reboot
 
-- hosts: swarm-manager
+- hosts: swarm_manager
   tasks:
   - name: Init a docker swarm
     docker_swarm:
-      advertise_addr: "{{ hostvars['swarm-manager']['ansible_default_ipv4']['address'] }}"
+      advertise_addr: "{{ hostvars['swarm_manager']['ansible_default_ipv4']['address'] }}"
       state: present
   - name: Get swarm info
     docker_swarm:
@@ -72,23 +72,23 @@
     register: swarm_info
     
 
-- hosts: managers
+- hosts: additional_swarm_managers
   tasks:
   - name: Add managers to docker swarm
     docker_swarm:
       state: join
-      join_token: "{{ hostvars['swarm-manager']['swarm_info']['swarm_facts']['JoinTokens']['Manager'] }}"
+      join_token: "{{ hostvars['swarm_manager']['swarm_info']['swarm_facts']['JoinTokens']['Manager'] }}"
       advertise_addr: "{{ ansible_default_ipv4.address }}"
-      remote_addrs: ["{{ hostvars['swarm-manager']['ansible_default_ipv4']['address'] }}"]
+      remote_addrs: ["{{ hostvars['swarm_manager']['ansible_default_ipv4']['address'] }}"]
 
-- hosts: workers
+- hosts: swarm_workers
   tasks:
   - name: Add workers to docker swarm
     docker_swarm:
       state: join
-      join_token: "{{ hostvars['swarm-manager']['swarm_info']['swarm_facts']['JoinTokens']['Worker'] }}"
+      join_token: "{{ hostvars['swarm_manager']['swarm_info']['swarm_facts']['JoinTokens']['Worker'] }}"
       advertise_addr: "{{ ansible_default_ipv4.address }}"
-      remote_addrs: ["{{ hostvars['swarm-manager']['ansible_default_ipv4']['address'] }}"]
+      remote_addrs: ["{{ hostvars['swarm_manager']['ansible_default_ipv4']['address'] }}"]
 
   - command: hostname
     register: actual_hostname
@@ -97,16 +97,16 @@
   tasks:
   - name: Add master labels
     docker_node:
-      docker_host: "{{hostvars['swarm-manager']['ansible_default_ipv4']['address']}}:2375"
+      docker_host: "{{hostvars['swarm_manager']['ansible_default_ipv4']['address']}}:2375"
       hostname: "{{ actual_hostname.stdout }}"
       labels:
         elastic: master
 
-- hosts: data
+- hosts: data_nodes
   tasks:
   - name: Add data labels
     docker_node:
-      docker_host: "{{hostvars['swarm-manager']['ansible_default_ipv4']['address']}}:2375"
+      docker_host: "{{hostvars['swarm_manager']['ansible_default_ipv4']['address']}}:2375"
       hostname: "{{ actual_hostname.stdout }}"
       labels:
         elastic: data

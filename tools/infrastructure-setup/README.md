@@ -35,13 +35,13 @@ This play will set up your cluster with swarm managers and workers. **Nothing wi
 
 Add in IP addresses to the different blocks in the hosts file './ansible/inventory/production/swarm_hosts'.
 
-| Group         | Explaination                                                                                                                                     |
-| --------------| ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| swarm-manager |  Single host. Creates and administers the swarm                                                                                                  |
-| managers      | swarm managers here. We recommend 2 (2 here plus the swarm-manager)                                                                              |
-| workers       | Add remaining hosts here. They will run the Elastic cluster                                                                                      |
-| master        | Nodes listed here will be reserved for Elasticsearch nodes configured as master nodes. Check the Elastic website for the latest recommendations. |
-| data          | Nodes listed here will be reserved for Elasticsearch nodes configured as data nodes                                                              |
+| Group                          | Explaination                                                                                                                                     |
+| -------------------------------| ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| swarm_manager                  | Single host. Creates and administers the swarm                                                                                                   |
+| additional_swarm_managers      | Additional swarm managers are listed here. We recommend 2 (2 here plus the swarm-manager)                                                        |
+| swarm_workers                  | Add remaining hosts here. They will run the Elastic cluster                                                                                      |
+| master_node                    | Nodes listed here will be reserved for Elasticsearch nodes configured as master nodes. Check the Elastic website for the latest recommendations. |
+| data_nodes                     | Nodes listed here will be reserved for Elasticsearch nodes configured as data nodes                                                              |
 
 #### Running
 Once you have divvied up your machines, run the following command to create your swarm:
