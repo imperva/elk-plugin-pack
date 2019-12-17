@@ -1,10 +1,9 @@
-swarm-manager ansible_host=
+swarm_manager ansible_host=
 
-[managers]
+[additional_swarm_managers]
 
-[workers]
+[swarm_workers]
 
-[master]
+[master_node]
 
-[data]
-
+[data_nodes]

@@ -11,13 +11,9 @@ resource "aws_instance" "elk-stack" {
     key_name        = "${var.key}"
     ebs_block_device {
         device_name = "/dev/xvda"
-        volume_type = "gp2"
-        volume_size = 20
-    }
-    ebs_block_device {
-        device_name = "/dev/sdb"
-        volume_type = "st1"
-        volume_size = 503
+        volume_type = "io1"
+        iops        = 3000
+        volume_size = 500
     }
 }
 

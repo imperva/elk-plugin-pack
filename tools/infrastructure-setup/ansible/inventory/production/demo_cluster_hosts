@@ -1,17 +1,9 @@
-master_node ansible_host=ec2-3-16-166-152.us-east-2.compute.amazonaws.com
+master_node ansible_host=
 
 [additional_master_nodes]
 
 [hot_data_nodes]
-ec2-13-58-171-237.us-east-2.compute.amazonaws.com
-ec2-18-191-68-249.us-east-2.compute.amazonaws.com
 
 [warm_data_nodes]
-ec2-3-17-27-122.us-east-2.compute.amazonaws.com
-ec2-3-15-170-254.us-east-2.compute.amazonaws.com
-ec2-52-14-108-210.us-east-2.compute.amazonaws.com
 
 [cold_data_nodes]
-ec2-18-219-215-75.us-east-2.compute.amazonaws.com
-ec2-3-18-223-32.us-east-2.compute.amazonaws.com
-ec2-18-220-240-102.us-east-2.compute.amazonaws.com
