@@ -85,7 +85,7 @@ func generate_message( which int, random_int int ) models.Message {
 					raw_query,
 					parsed_query,
 					bind_variables,
-					gofakeit.HipsterSentence(30),
+					gofakeit.Sentence(30)
 					gofakeit.Number(1, 99999),
 					service_type,
 					mxip,
@@ -104,7 +104,7 @@ func generate_message( which int, random_int int ) models.Message {
 					gofakeit.Number(1, 99999),
 					gofakeit.Number(1, 2000),
 					strconv.FormatBool( gofakeit.Bool() ),
-					gofakeit.HipsterSentence(30),
+					gofakeit.Sentence(30),
 					query_group,
 				}
 
