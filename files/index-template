@@ -1,14 +1,17 @@
 PUT _template/audit
 {
-  "index_patterns": ["audit*"],
+  "version": 1,
+  "index_patterns": [
+    "audit*"
+  ],
   "settings": {
     "number_of_shards": 2,
-	"number_of_replicas": "1",
-	"index.lifecycle.name": "Audit",
-	"index.lifecycle.rollover_alias": "audit" ,
-   "aliases": {
-    "audit": {}
+    "number_of_replicas": "1",
+    "index.lifecycle.name": "Audit",
+    "index.lifecycle.rollover_alias": "audit_alias",
+    "refresh_interval": "30s"
   },
-	"refresh_interval": "30s"
+  "aliases": {
+    "audit_alias": {}
   }
 }
