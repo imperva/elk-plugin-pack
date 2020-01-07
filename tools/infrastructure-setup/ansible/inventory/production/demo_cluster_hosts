@@ -7,3 +7,7 @@ master_node ansible_host=
 [warm_data_nodes]
 
 [cold_data_nodes]
+
+[coordinating_nodes]
+
+[logstash_nodes]

@@ -77,6 +77,27 @@
       network.host: "0.0.0.0"
       http.port: 9200
       transport.tcp.port: 9300
+      node.data: false
+      node.master: false
+      bootstrap.memory_lock: true
+    es_heap_size: "16g" # CHANGE_ME #
+    es_start_service: false
+
+- hosts: coordinating_nodes
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.5.0"
+    es_data_dirs:
+      - "/mnt/elasticsearch/data" # CHANGE_ME #
+    es_config:
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      discovery.seed_hosts:  "{{ hostvars['master_node']['ansible_default_ipv4']['address'] }}:9300"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
       node.data: true
       node.master: false
       bootstrap.memory_lock: true
