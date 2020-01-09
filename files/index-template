@@ -7,8 +7,6 @@ PUT _template/audit
   "settings": {
     "number_of_shards": 2,
     "number_of_replicas": "1",
-    "routing.allocation.include.box_type": "hot",
-    "routing.allocation.total_shards_per_node": 2
     "index.lifecycle.name": "audit_policy",
     "index.lifecycle.rollover_alias": "audit_alias",
     "refresh_interval": "30s"
