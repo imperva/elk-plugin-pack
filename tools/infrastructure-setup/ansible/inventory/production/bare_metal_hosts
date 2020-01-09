@@ -3,3 +3,5 @@ master_node ansible_host=
 [additional_master_nodes]
 
 [data_nodes]
+
+[coordinating_nodes]

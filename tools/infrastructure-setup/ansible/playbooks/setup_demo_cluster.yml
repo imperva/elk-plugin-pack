@@ -25,7 +25,7 @@
   - role: elastic.elasticsearch
     vars:
     es_major_version: "7.x"
-    es_version: "7.5.0"
+    es_version: "7.4.1"
     es_data_dirs:
       - "/mnt/elasticsearch/data" # CHANGE_ME #
     es_config:
@@ -46,7 +46,7 @@
   - role: elastic.elasticsearch
   vars:
     es_major_version: "7.x"
-    es_version: "7.5.0"
+    es_version: "7.4.1"
     es_data_dirs:
       - "/mnt/elasticsearch/data" # CHANGE_ME #
     es_config:
@@ -67,7 +67,7 @@
   - role: elastic.elasticsearch
   vars:
     es_major_version: "7.x"
-    es_version: "7.5.0"
+    es_version: "7.4.1"
     es_data_dirs:
       - "/mnt/elasticsearch/data" # CHANGE_ME #
     es_config:
@@ -81,7 +81,7 @@
       node.attr.data: "hot"
       node.master: false
       bootstrap.memory_lock: true
-    es_heap_size: "16g" # CHANGE_ME #
+    es_heap_size: "24g" # CHANGE_ME #
     es_start_service: false
 
 - hosts: warm_data_nodes
@@ -89,7 +89,7 @@
   - role: elastic.elasticsearch
   vars:
     es_major_version: "7.x"
-    es_version: "7.5.0"
+    es_version: "7.4.1"
     es_data_dirs:
       - "/mnt/elasticsearch/data" # CHANGE_ME #
     es_config:
@@ -111,7 +111,7 @@
   - role: elastic.elasticsearch
   vars:
     es_major_version: "7.x"
-    es_version: "7.5.0"
+    es_version: "7.4.1"
     es_data_dirs:
       - "/mnt/elasticsearch/data" # CHANGE_ME #
     es_config:
@@ -128,10 +128,35 @@
     es_heap_size: "6g" # CHANGE_ME #
     es_start_service: false
 
-- hosts: all
+- hosts: coordinating_nodes
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.4.1"
+    es_data_dirs:
+      - "/mnt/elasticsearch/data" # CHANGE_ME #
+    es_config:
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      discovery.seed_hosts:  "{{ hostvars['master_node']['ansible_default_ipv4']['address'] }}:9300"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: false
+      node.master: false
+      bootstrap.memory_lock: true
+    es_heap_size: "58g" # CHANGE_ME #
+    es_start_service: false
+
+- hosts: master_node:additional_master_nodes:hot_data_nodes:warm_data_nodes:cold_data_nodes:coordinating_nodes
   become: true
   roles:
     - ../roles/modify_limits_bare_metal
+
+- hosts: all
+  become: true
+  roles:
     - ../roles/reboot
 
 - hosts: warm_data_nodes:cold_data_nodes
@@ -164,15 +189,18 @@
       state: directory
 
 
-- hosts: all
+- hosts: master_node:additional_master_nodes:hot_data_nodes:warm_data_nodes:cold_data_nodes:coordinating_nodes
   become: true
   tasks:
   - name: Start elasticsearch
     command: "service elasticsearch start"
 
-- hosts: hot_data_nodes
+- hosts: logstash_nodes
   become: yes
   tasks:
+  - copy:
+      src: ../config-files/logstash/logstash.repo
+      dest: /etc/yum.repos.d/logstash.repo
   - name: Remove old logstash version
     yum:
       name: "{{ packages }}"
@@ -180,7 +208,6 @@
     vars:
       packages:
       - logstash
-
   - name: Install logstash
     yum:
       name: "{{ packages }}"
@@ -217,6 +244,9 @@
 - hosts: master_node
   become: yes
   tasks:
+  - copy:
+      src: ../config-files/kibana/kibana.repo
+      dest: /etc/yum.repos.d/kibana.repo
   - name: Remove old kibana version
     yum:
       name: "{{ packages }}"
@@ -227,11 +257,11 @@
   - name: Install kibana
     yum:
       name: "{{ packages }}"
-      state: latest
+      state: "installed"
       update_cache: yes
     vars:
       packages:
-      - kibana
+      - kibana-7.4.1
   - copy:
       src: ../config-files/kibana/kibana.yml
       dest: /etc/kibana/kibana.yml

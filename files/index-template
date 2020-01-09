@@ -7,11 +7,13 @@ PUT _template/audit
   "settings": {
     "number_of_shards": 2,
     "number_of_replicas": "1",
-    "index.lifecycle.name": "Audit",
+    "index.lifecycle.name": "audit_policy",
     "index.lifecycle.rollover_alias": "audit_alias",
     "refresh_interval": "30s"
   },
   "aliases": {
-    "audit_alias": {}
+    "audit_alias": {
+      "is_write_index": true
+    }
   }
 }

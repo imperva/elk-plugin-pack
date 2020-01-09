@@ -25,7 +25,7 @@
   - role: elastic.elasticsearch
     vars:
     es_major_version: "7.x"
-    es_version: "7.5.0"
+    es_version: "7.4.1"
     es_data_dirs:
       - "/mnt/elasticsearch/data" # CHANGE_ME #
     es_config:
@@ -46,7 +46,7 @@
   - role: elastic.elasticsearch
   vars:
     es_major_version: "7.x"
-    es_version: "7.5.0"
+    es_version: "7.4.1"
     es_data_dirs:
       - "/mnt/elasticsearch/data" # CHANGE_ME #
     es_config:
@@ -67,7 +67,7 @@
   - role: elastic.elasticsearch
   vars:
     es_major_version: "7.x"
-    es_version: "7.5.0"
+    es_version: "7.4.1"
     es_data_dirs:
       - "/mnt/elasticsearch/data" # CHANGE_ME #
     es_config:
@@ -78,6 +78,27 @@
       http.port: 9200
       transport.tcp.port: 9300
       node.data: true
+      node.master: false
+      bootstrap.memory_lock: true
+    es_heap_size: "16g" # CHANGE_ME #
+    es_start_service: false
+
+- hosts: coordinating_nodes
+  roles:
+  - role: elastic.elasticsearch
+  vars:
+    es_major_version: "7.x"
+    es_version: "7.4.1"
+    es_data_dirs:
+      - "/mnt/elasticsearch/data" # CHANGE_ME #
+    es_config:
+      cluster.name: "audit-cluster"
+      cluster.initial_master_nodes: "es-master-1"
+      discovery.seed_hosts:  "{{ hostvars['master_node']['ansible_default_ipv4']['address'] }}:9300"
+      network.host: "0.0.0.0"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: false
       node.master: false
       bootstrap.memory_lock: true
     es_heap_size: "16g" # CHANGE_ME #
@@ -122,6 +143,9 @@
 - hosts: data_nodes
   become: yes
   tasks:
+  - copy:
+      src: ../config-files/logstash/logstash.repo
+      dest: /etc/yum.repos.d/logstash.repo
   - name: Remove old logstash version
     yum:
       name: "{{ packages }}"
@@ -166,6 +190,9 @@
 - hosts: master_node
   become: yes
   tasks:
+  - copy:
+      src: ../config-files/kibana/kibana.repo
+      dest: /etc/yum.repos.d/kibana.repo
   - name: Remove old kibana version
     yum:
       name: "{{ packages }}"
@@ -176,11 +203,11 @@
   - name: Install kibana
     yum:
       name: "{{ packages }}"
-      state: latest
+      state: "installed"
       update_cache: yes
     vars:
       packages:
-      - kibana
+      - kibana-7.4.1
   - copy:
       src: ../config-files/kibana/kibana.yml
       dest: /etc/kibana/kibana.yml

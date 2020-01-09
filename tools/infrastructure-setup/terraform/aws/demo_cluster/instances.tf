@@ -82,6 +82,42 @@ resource "aws_instance" "elastic-cold-data-nodes" {
   }
 }
 
+resource "aws_instance" "elastic-coordinating-nodes" {
+  count           = var.coordinating_node_count
+  ami             = var.amazon_linux_2
+  instance_type   = "r5a.2xlarge"
+  security_groups = [aws_security_group.setup.name, aws_security_group.vpc_internal.name]
+  key_name        = var.key
+  ebs_block_device {
+    device_name = "/dev/xvda"
+    volume_type = "gp2"
+    volume_size = 20
+  }
+  
+  tags = {
+    Name = "lsar-demo-cluster"
+  }
+}
+
+resource "aws_instance" "elastic-logstash-nodes" {
+  count           = var.logstash_node_count
+  ami             = var.amazon_linux_2
+  instance_type   = "c5.2xlarge"
+  security_groups = [aws_security_group.setup.name, aws_security_group.vpc_internal.name]
+  key_name        = var.key
+  ebs_block_device {
+    device_name = "/dev/xvda"
+    volume_type = "io1"
+    iops        = 3000
+    volume_size = 100
+  }
+
+  tags = {
+    Name = "lsar-demo-cluster"
+  }
+}
+
+
 output "public_dns_master" {
   value = aws_instance.elastic-masters.*.public_dns
 }
@@ -98,3 +134,10 @@ output "public_dns_cold" {
   value = aws_instance.elastic-cold-data-nodes.*.public_dns
 }
 
+output "public_dns_coordinating" {
+  value = aws_instance.elastic-coordinating-nodes.*.public_dns
+}
+
+output "public_dns_logstash" {
+  value = aws_instance.elastic-logstash-nodes.*.public_dns
+}
