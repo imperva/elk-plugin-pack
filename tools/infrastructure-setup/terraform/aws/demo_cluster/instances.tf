@@ -16,7 +16,7 @@ resource "aws_instance" "elastic-masters" {
   }
   
   tags = {
-    Name = "lsar-demo-cluster"
+    Name = "lsar-demo-cluster-master"
   }
 }
 
@@ -34,7 +34,7 @@ resource "aws_instance" "elastic-hot-data-nodes" {
   }
 
   tags = {
-    Name = "lsar-demo-cluster"
+    Name = "lsar-demo-cluster-hot"
   }
 }
 
@@ -56,7 +56,7 @@ resource "aws_instance" "elastic-warm-data-nodes" {
   }
 
   tags = {
-    Name = "lsar-demo-cluster"
+    Name = "lsar-demo-cluster-warm"
   }
 }
 
@@ -78,7 +78,7 @@ resource "aws_instance" "elastic-cold-data-nodes" {
   }
 
   tags = {
-    Name = "lsar-demo-cluster"
+    Name = "lsar-demo-cluster-cold"
   }
 }
 
@@ -95,7 +95,7 @@ resource "aws_instance" "elastic-coordinating-nodes" {
   }
   
   tags = {
-    Name = "lsar-demo-cluster"
+    Name = "lsar-demo-cluster-coordinating"
   }
 }
 
@@ -113,7 +113,7 @@ resource "aws_instance" "elastic-logstash-nodes" {
   }
 
   tags = {
-    Name = "lsar-demo-cluster"
+    Name = "lsar-demo-cluster-logstash"
   }
 }
 
