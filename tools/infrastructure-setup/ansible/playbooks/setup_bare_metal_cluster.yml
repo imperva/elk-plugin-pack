@@ -107,7 +107,7 @@
 - hosts: all
   become: true
   vars:
-    mount_volume: true # CHANGE_ME #
+    mount_volume: false # CHANGE_ME #
   roles:
     - ../roles/modify_limits_bare_metal
     - ../roles/reboot

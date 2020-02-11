@@ -1,19 +1,17 @@
-variable "region" {
-    default = "us-east-2"
+
+variable "aws_region" {
+  default = "us-east-1"
 }
 
-variable "instance_count" {
-    default = 3
+variable "worker_count" {
+  default = 3
 }
 
-variable "key" {
-    default = "audit-deploy"
+variable "instance_type" {
+  default = "m5a.2xlarge" 
 }
 
-variable "amazon_linux_2" {
-    default = "ami-00c03f7f7f2ec15c3"
+variable "keypair" {
+  default = "elk-basic"
 }
 
-variable "ubuntu_server_18_04" {
-    default = "ami-0d5d9d301c853a04a"
-}
