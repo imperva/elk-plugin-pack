@@ -1,0 +1,10 @@
+bootstrap.memory_lock: false
+discovery.zen.ping.unicast.hosts: esmaster1
+cluster.initial_master_nodes: es-master-1
+node.master: false
+node.data: false
+node.ingest: false
+node.name: es-coordination
+cluster.name: "lsar-cluster"
+network.host: 0.0.0.0
+action.destructive_requires_name: true

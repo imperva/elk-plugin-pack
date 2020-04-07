@@ -1,0 +1,13 @@
+master_node ansible_host=
+
+[additional_master_nodes]
+
+[hot_data_nodes]
+
+[warm_data_nodes]
+
+[cold_data_nodes]
+
+[coordinating_nodes]
+
+[logstash_nodes]

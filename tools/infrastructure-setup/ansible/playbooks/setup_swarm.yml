@@ -1,0 +1,112 @@
+- hosts: all
+  become: true
+  roles:
+    - ../roles/update
+    
+- hosts: all
+  become: true
+  tasks:
+  - name: Ensure a list of yum packages are installed
+    yum:
+      name: "{{ packages }}"
+      state: latest
+      update_cache: yes
+    vars:
+      packages:
+      - python-pip
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+      - git
+      - curl
+      - amazon-linux-extras
+
+  - name: Add extras repository
+    shell: yum-config-manager --enable extras
+
+  - name: install certain python modules for docker
+    pip:
+      name: "{{ packages }}"
+      state: present
+    vars:
+      packages:
+      - docker
+
+  - name: Download docker-compose
+    shell: sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+  - name: Make docker-compose executable
+    shell: sudo chmod +x /usr/local/bin/docker-compose
+
+- name: Install Docker
+  hosts: all
+  become: true
+  roles:
+    - ../roles/install_docker
+    - ../roles/modify_limits
+
+- hosts: swarm_manager
+  become: true
+  roles:
+    - role: ../roles/modify_docker_options_manager
+
+- hosts: swarm_workers
+  become: true
+  roles:
+    - role: ../roles/modify_docker_options
+
+- hosts: all
+  become: true
+  roles:
+    - ../roles/reboot
+
+- hosts: swarm_manager
+  tasks:
+  - name: Init a docker swarm
+    docker_swarm:
+      advertise_addr: "{{ hostvars['swarm_manager']['ansible_default_ipv4']['address'] }}"
+      state: present
+  - name: Get swarm info
+    docker_swarm:
+      state: inspect
+    register: swarm_info
+    
+
+- hosts: additional_swarm_managers
+  tasks:
+  - name: Add managers to docker swarm
+    docker_swarm:
+      state: join
+      join_token: "{{ hostvars['swarm_manager']['swarm_info']['swarm_facts']['JoinTokens']['Manager'] }}"
+      advertise_addr: "{{ ansible_default_ipv4.address }}"
+      remote_addrs: ["{{ hostvars['swarm_manager']['ansible_default_ipv4']['address'] }}"]
+
+- hosts: swarm_workers
+  tasks:
+  - name: Add workers to docker swarm
+    docker_swarm:
+      state: join
+      join_token: "{{ hostvars['swarm_manager']['swarm_info']['swarm_facts']['JoinTokens']['Worker'] }}"
+      advertise_addr: "{{ ansible_default_ipv4.address }}"
+      remote_addrs: ["{{ hostvars['swarm_manager']['ansible_default_ipv4']['address'] }}"]
+
+  - command: hostname
+    register: actual_hostname
+
+- hosts: master
+  tasks:
+  - name: Add master labels
+    docker_node:
+      docker_host: "{{hostvars['swarm_manager']['ansible_default_ipv4']['address']}}:2375"
+      hostname: "{{ actual_hostname.stdout }}"
+      labels:
+        elastic: master
+
+- hosts: data_nodes
+  tasks:
+  - name: Add data labels
+    docker_node:
+      docker_host: "{{hostvars['swarm_manager']['ansible_default_ipv4']['address']}}:2375"
+      hostname: "{{ actual_hostname.stdout }}"
+      labels:
+        elastic: data

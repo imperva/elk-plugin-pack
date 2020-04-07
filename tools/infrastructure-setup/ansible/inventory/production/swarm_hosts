@@ -1,0 +1,9 @@
+swarm_manager ansible_host=
+
+[additional_swarm_managers]
+
+[swarm_workers]
+
+[master_node]
+
+[data_nodes]
