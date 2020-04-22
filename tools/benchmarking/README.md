@@ -1,16 +1,16 @@
-# Test Tools
+# Benchmarking Tools
 
 ## Build
-To build run the following command from the **tools/testing** directory
+To build run the following command from the **tools/benchmarking** directory
 
-    env TAG=${ENTER_TAG} SERVICE_NAME={{ log-sender | kibana-querier }} docker-compose -f testing/build.yml build
+    env TAG=${ENTER_TAG} SERVICE_NAME={{ log-sender | kibana-querier }} docker-compose -f benchmarking/build.yml build
 
 ## Running
-To run the test log sender tool
+To run the log sender tool
 
     log-sender {{ TARGET_IP_ADDRESS }} {{ NUMBER_OF_LOGS }} {{ THREADS_TO_USE }}
 
-To run the test log sender tool using Docker
+To run the log sender tool using Docker
 
     docker run -d imperva/log-sender:{{ TAG }} {{ TARGET_IP_ADDRESS }} {{ NUMBER_OF_LOGS }} {{ THREADS_TO_USE }}
 
