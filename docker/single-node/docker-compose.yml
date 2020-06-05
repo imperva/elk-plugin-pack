@@ -1,7 +1,7 @@
-version: "3.6"
+version: "3.7"
 services:
   es01:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    image: elasticsearch:7.7.1
     container_name: es01
     environment:
       - node.name=es01
@@ -28,7 +28,7 @@ services:
       timeout: 10s
       retries: 5
   kib01:
-    image: docker.elastic.co/kibana/kibana:7.4.0
+    image: kibana:7.7.1
     container_name: kib01
     ports: ['5601:5601']
     networks: ['stack']
@@ -42,12 +42,10 @@ services:
       retries: 5
   logstash:
     container_name: ls01
-    build:
-      context: logstash/
-    image: docker.elastic.co/logstash/logstash:7.4.0
+    image: logstash:7.7.1
     volumes:
       - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
-      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./logstash/pipeline/:/usr/share/logstash/pipeline/:ro
     ports:
       - "5514:5514"
       - "5003:5003"
@@ -56,14 +54,6 @@ services:
     depends_on: ['es01']
     environment:
       LS_JAVA_OPTS: "-Xmx1g -Xms1g"
-  # fld01:
-  #   build: ./fluentd
-  #   container_name: fld01
-  #   ports: ['5514:5514','5514:5514/udp']
-  #   networks: ['stack']
-  #   depends_on: ['es01']
-  #   volumes:
-  #     - ./fluentd/conf:/fluentd/etc
 networks: {stack: {}}
 volumes:
   es01data:

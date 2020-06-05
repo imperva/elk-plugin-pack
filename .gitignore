@@ -1,4 +1,4 @@
-tools/testing/cmd/kibana-querier/kibana-querier
 .terraform
 *.tfstate*
-tools/testing/cmd/log-sender/log-sender
+**/log-sender
+**/kibana-querier

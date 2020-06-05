@@ -3,8 +3,8 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
-variable "worker_count" {
-  default = 3
+variable "node_count" {
+  default = 6
 }
 
 variable "instance_type" {

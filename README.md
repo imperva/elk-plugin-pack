@@ -31,3 +31,7 @@ Files for integrating SecureSphere with the open reporting solution
 
 ### Tools
 Contains tools used in benchmarking the elasticsearch cluster
+
+
+## Supported Hardware
+This repo has been extensively tested using Amazon Linux 2. You may encounter issues with other distributions

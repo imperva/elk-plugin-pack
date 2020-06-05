@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   esmaster:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1
     healthcheck:
       test: curl -fs http://localhost:9200/_cat/health || exit 1
       interval: 30s
@@ -28,7 +28,7 @@ services:
           memory: 18G
 
   esdata:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1
     healthcheck:
       test: curl -fs http://localhost:9200/_cat/health || exit 1
       interval: 30s
@@ -54,7 +54,7 @@ services:
           memory: 18G
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:7.4.0
+    image: docker.elastic.co/logstash/logstash:7.7.1
     configs:
       - source: logstash_config
         target: /usr/share/logstash/config/logstash.yml
@@ -78,7 +78,7 @@ services:
       LS_JAVA_OPTS: "-Xmx1g -Xms1g"
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:7.4.0
+    image: docker.elastic.co/kibana/kibana:7.7.1
     ports:
       - "5601:5601"
     configs:

@@ -4,7 +4,6 @@
 #
 http.host: "0.0.0.0"
 xpack.monitoring.elasticsearch.hosts: [ "http://es01:9200" ]
-xpack.monitoring.enabled: "true"
-queue.type: persisted
-queue.drain: true
-queue.max_bytes: 4gb
+# queue.type: persisted
+# queue.drain: true
+# queue.max_bytes: 4gb
