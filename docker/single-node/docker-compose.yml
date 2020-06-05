@@ -1,0 +1,62 @@
+version: "3.7"
+services:
+  es01:
+    image: elasticsearch:7.7.1
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.name=lsar
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - path.repo=/usr/share/elasticsearch/backups
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports: ['9200:9200']
+    networks: ['stack']
+    volumes:
+      - es01data:/usr/share/elasticsearch/data
+      - es02data:/usr/share/elasticsearch/backups
+      - type: bind
+        source: ./elastic/jvm.options
+        target: /usr/share/elasticsearch/config/jvm.options
+    healthcheck:
+      test: curl -s https://es01:9200 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  kib01:
+    image: kibana:7.7.1
+    container_name: kib01
+    ports: ['5601:5601']
+    networks: ['stack']
+    depends_on: ['es01']
+    volumes:
+      - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+    healthcheck:
+      test: curl -s https://kib01:5601 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  logstash:
+    container_name: ls01
+    image: logstash:7.7.1
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./logstash/pipeline/:/usr/share/logstash/pipeline/:ro
+    ports:
+      - "5514:5514"
+      - "5003:5003"
+      - "9603:9603"
+    networks: ['stack']
+    depends_on: ['es01']
+    environment:
+      LS_JAVA_OPTS: "-Xmx1g -Xms1g"
+networks: {stack: {}}
+volumes:
+  es01data:
+    driver: local
+  es02data:
+    driver: local
